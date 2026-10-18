@@ -26,6 +26,8 @@
 
 MMProLong studies how to train long-context vision-language models effectively through long-context continued pre-training (LongPT). Starting from Qwen2.5-VL-7B, it extends the training context from **32K to 128K** and generalizes to **256K and 512K** without additional training or inference-time adaptation. The paper reports a **7.11 percentage-point** improvement on long-document VQA, from 50.59 to 57.70, with transfer to webpage retrieval, vision-text compression, and long-video understanding.
 
+**NTK-aware 128K context extension:** for Qwen2.5-VL, we increase the **mRoPE base from 1,000,000 to 4,000,000 (4×)** and continue pre-training at **131,072 tokens**. The original [3B](configs/model_configs/qwen/mmprolong_qwen25_vl_3b_128k.json) and [7B](configs/model_configs/qwen/mmprolong_qwen25_vl_7b_128k.json) model configurations are included.
+
 **This repository is a research fork of [ByteDance-Seed/VeOmni](https://github.com/ByteDance-Seed/VeOmni).** VeOmni provides the training framework, distributed execution, model integrations, and checkpoint infrastructure. MMProLong adds long-document VQA synthesis, Qwen-VL training adaptations, and long-context data recipes. We retain the `veomni` package name and upstream copyright notices.
 
 Please check out the [paper](https://arxiv.org/abs/2605.13831) for the study and results. This repository explains how to prepare data, run training, and export checkpoints.
@@ -41,6 +43,7 @@ Please check out the [paper](https://arxiv.org/abs/2605.13831) for the study and
 - [Data](#data)
 - [Data synthesis](#data-synthesis)
 - [Running training](#running-training)
+- [NTK-aware 128K extension](#ntk-aware-128k-extension)
 - [Running evaluation](#running-evaluation)
 - [Tips](#tips)
 - [Repository structure](#repository-structure)
@@ -105,10 +108,27 @@ Each example needs `conversations` (a LLaVA-style list or its JSON string) and `
 
 ## Running training
 
+### NTK-aware 128K extension
+
+Following the NTK-aware RoPE scaling heuristic, we extend Qwen2.5-VL's training context from **32K to 128K** by increasing its **mRoPE base from 1,000,000 to 4,000,000**. The released implementation uses this fixed 4M base throughout continued pre-training and retains the original mRoPE sections `[16, 24, 24]`.
+
+Both the original [3B JSON](configs/model_configs/qwen/mmprolong_qwen25_vl_3b_128k.json) and [7B JSON](configs/model_configs/qwen/mmprolong_qwen25_vl_7b_128k.json) contain these settings:
+
+```json
+{
+  "rope_theta": 4000000.0,
+  "max_position_embeddings": 131072
+}
+```
+
+The training task passes `model.config_path` into `build_foundation_model`, while `model.model_path` supplies the pretrained weights. After loading, it logs the actual config path, `rope_theta`, and `max_position_embeddings`. The 7B launch script explicitly passes the original 7B JSON; the command below shows the same argument.
+
+### Qwen2.5-VL-7B
+
 The main training configuration is **[configs/mmprolong/qwen25_vl_7b_128k.yaml](configs/mmprolong/qwen25_vl_7b_128k.yaml)**. It contains the MMProLong defaults, including:
 
 - **128K context**, global batch size **32**, and micro batch size **1**.
-- A nominal **5,000,000,000-token** budget, preserving the original launch script.
+- A **5,000,000,000-token** training budget.
 - AdamW, peak language-model LR **1e-5**, **10% warmup**, and cosine decay to **1e-6**.
 - FSDP2 with `data_parallel_shard_size=8`, **Ulysses size 2**, and gradient checkpointing.
 
@@ -118,6 +138,7 @@ Download `Qwen/Qwen2.5-VL-7B-Instruct`, or allow Hugging Face to resolve it. For
 bash train.sh tasks/omni/train_qwen_vl.py \
   configs/mmprolong/qwen25_vl_7b_128k.yaml \
   --model.model_path /shared/models/Qwen2.5-VL-7B-Instruct \
+  --model.config_path configs/model_configs/qwen/mmprolong_qwen25_vl_7b_128k.json \
   --model.tokenizer_path /shared/models/Qwen2.5-VL-7B-Instruct \
   --data.train_path /shared/data/mmprolong-mixture.yaml \
   --train.output_dir /shared/outputs/mmprolong
@@ -135,6 +156,19 @@ bash scripts/qwen_vl_job/run_qwen25_vl_7b_vqa.sh \
 ```
 
 Use shared data and output paths across nodes. W&B is opt-in via `--train.use_wandb true --train.wandb_name <run-name>`.
+
+### Qwen2.5-VL-3B
+
+To use the 3B backbone with the same training defaults, override the model, tokenizer, and configuration paths together:
+
+```bash
+bash scripts/qwen_vl_job/run_qwen25_vl_7b_vqa.sh \
+  --model.model_path Qwen/Qwen2.5-VL-3B-Instruct \
+  --model.tokenizer_path Qwen/Qwen2.5-VL-3B-Instruct \
+  --model.config_path configs/model_configs/qwen/mmprolong_qwen25_vl_3b_128k.json \
+  --data.train_path /shared/data/mmprolong-mixture.yaml \
+  --train.output_dir /shared/outputs/mmprolong-3b
+```
 
 ### Qwen3-VL-8B
 
@@ -183,7 +217,7 @@ The generic `configs/multimodal/qwen25_vl/qwen25_vl.yaml` is an inherited 4K exa
 <details>
 <summary>2. Token budget and optimizer settings</summary>
 
-The released scripts use 5,000,000,000 tokens, one epoch, and 32 × 131,072 nominal tokens per update. With the default zero packing margin and batch warmup, this gives 1,193 optimizer steps. Actual consumed tokens depend on packing. The paper's definition of 5B differs; see the [reproduction notes](docs/reproduction_notes.md).
+The released scripts use 5,000,000,000 tokens, one epoch, and 32 × 131,072 nominal tokens per update. With the default zero packing margin and batch warmup, this gives 1,193 optimizer steps. Actual consumed tokens depend on packing.
 
 AdamW uses weight decay 0.1 and framework-default betas `(0.9, 0.95)`. The existing trainer uses a separate vision peak LR of `1e-6`; both language and vision groups receive the same scheduler multiplier. These settings are retained explicitly in the training YAMLs.
 
@@ -203,7 +237,7 @@ Set `LOG_FILE` to change the launcher's default `log.txt`. If the checkout is on
 
 Extraction-to-reasoning mixtures are in [scripts/qwen_vl_mix_yaml/](scripts/qwen_vl_mix_yaml/): `0_10`, `2_8`, `4_6`, `6_4`, `8_2`, and `10_0`. Select an edited mixture with `--data.train_path`. The `even` configuration uses equal task weights; it does not enforce a uniform sequence-length distribution.
 
-Historical short-data mixtures are in [scripts/qwen_vl_short_mix_yaml/](scripts/qwen_vl_short_mix_yaml/). Their long-data component is **6:4**, whereas the paper describes **8:2**. Their `weights` are sample probabilities derived from `token_weights / avg_len`; the loader consumes `weights` directly. Recalculate the probabilities for a new corpus. Original filenames and weights are retained, with the differences documented in the [reproduction notes](docs/reproduction_notes.md).
+Historical short-data mixtures are in [scripts/qwen_vl_short_mix_yaml/](scripts/qwen_vl_short_mix_yaml/). Their long-data component uses an extraction-to-reasoning ratio of **6:4**. Their `weights` are sample probabilities derived from `token_weights / avg_len`; the loader consumes `weights` directly. Recalculate the probabilities for a new corpus.
 
 </details>
 

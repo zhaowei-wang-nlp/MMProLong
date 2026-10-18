@@ -1,7 +1,8 @@
-# MMProLong release entry: preserves the original launch script's numeric settings.
-# See docs/reproduction_notes.md for discrepancies with arXiv:2605.13831.
+# MMProLong: NTK-aware 32K -> 128K context extension for Qwen2.5-VL-7B.
+# The original 128K JSON sets the mRoPE base from 1,000,000 to 4,000,000 (4x).
 model:
   model_path: Qwen/Qwen2.5-VL-7B-Instruct
+  # Passed to build_foundation_model; pretrained weights still come from model_path.
   config_path: configs/model_configs/qwen/mmprolong_qwen25_vl_7b_128k.json
   tokenizer_path: Qwen/Qwen2.5-VL-7B-Instruct
   attn_implementation: flash_attention_2

@@ -1,5 +1,6 @@
 """Portable checks for the public entry points; no model downloads or accelerators."""
 
+import argparse
 import ast
 import json
 import os
@@ -124,6 +125,38 @@ class LauncherTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn(f"configs/mmprolong/{name}_128k.yaml", args)
             self.assertEqual(args[-1], "/path with spaces/mixture.yaml")
+
+    def test_qwen25_wrapper_passes_original_128k_config(self):
+        result, args = self.run_launcher(args=[], wrapper="scripts/qwen_vl_job/run_qwen25_vl_7b_vqa.sh")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument("--model.config_path", dest="config_path")
+        selected, _ = parser.parse_known_args(args)
+        self.assertEqual(selected.config_path, "configs/model_configs/qwen/mmprolong_qwen25_vl_7b_128k.json")
+        config = json.loads((ROOT / selected.config_path).read_text())
+        self.assertEqual(config["rope_theta"], 4_000_000)
+        self.assertEqual(config["max_position_embeddings"], 131_072)
+
+    def test_qwen25_3b_override_replaces_7b_config(self):
+        model = "Qwen/Qwen2.5-VL-3B-Instruct"
+        config_path = "configs/model_configs/qwen/mmprolong_qwen25_vl_3b_128k.json"
+        result, args = self.run_launcher(
+            args=["--model.model_path", model, "--model.tokenizer_path", model, "--model.config_path", config_path],
+            wrapper="scripts/qwen_vl_job/run_qwen25_vl_7b_vqa.sh",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument("--model.model_path", dest="model_path")
+        parser.add_argument("--model.tokenizer_path", dest="tokenizer_path")
+        parser.add_argument("--model.config_path", dest="config_path")
+        selected, _ = parser.parse_known_args(args)
+        self.assertEqual(selected.model_path, model)
+        self.assertEqual(selected.tokenizer_path, model)
+        self.assertEqual(selected.config_path, config_path)
+        config = json.loads((ROOT / selected.config_path).read_text())
+        self.assertEqual(config["hidden_size"], 2048)
+        self.assertEqual(config["rope_theta"], 4_000_000)
+        self.assertEqual(config["max_position_embeddings"], 131_072)
 
 
 if __name__ == "__main__":

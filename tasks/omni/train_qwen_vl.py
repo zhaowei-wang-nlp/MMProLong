@@ -116,6 +116,7 @@ def main():
     )
 
     logger.info_rank0("Prepare model")
+    # The context-extension JSON configures the model; model_path supplies pretrained weights.
     model = build_foundation_model(
         config_path=args.model.config_path,
         weights_path=args.model.model_path,
@@ -124,6 +125,12 @@ def main():
         attn_implementation=args.model.attn_implementation,
     )
     model_config = model.config
+    text_config = getattr(model_config, "text_config", model_config)
+    logger.info_rank0(
+        f"Loaded model.config_path={args.model.config_path} | "
+        f"max_position_embeddings={text_config.max_position_embeddings} | "
+        f"rope_theta={text_config.rope_theta}"
+    )
     helper.print_device_mem_info("VRAM usage after building model")
 
     logger.info_rank0("Prepare data")

@@ -23,6 +23,8 @@ The original Qwen2.5-VL 128K training configurations supplied by the maintainer 
 
 Both configurations use `rope_theta=4000000`, `max_position_embeddings=131072`, `sliding_window=131072`, `use_sliding_window=false`, and `use_cache=true`. Their architecture dimensions are specific to the 3B and 7B backbones and must be paired with matching model weights and tokenizers.
 
+This implements the **NTK-aware 32K-to-128K context extension** through a fixed mRoPE base adjustment: the public Qwen2.5-VL-3B and 7B base configurations use `rope_theta=1000000`, while these training configurations use `rope_theta=4000000` (4×). The original mRoPE sections `[16, 24, 24]` remain unchanged. The training entry passes the selected JSON through `model.config_path` to the model loader and logs the effective RoPE base and position limit after loading.
+
 The earlier release's derived 7B JSON differed from the supplied original in only two fields: `sliding_window` was 32768 and `use_cache` was false. These values are now restored to the original file. During training, the existing Qwen2.5-VL implementation disables caching when gradient checkpointing is active.
 
 Qwen3-VL retains its native 256K model configuration unchanged. Its existing MMProLong recipe still trains with a 128K sequence limit; no Qwen3 configuration or launch script was changed when adding these files.
@@ -48,7 +50,7 @@ The [public repository](https://github.com/zhaowei-wang-nlp/MMProLong) starts fr
 ## Validation
 
 - Ruff 0.13.1 lint/format checks passed on the release-owned Python surface.
-- Seven portable configuration/launcher tests passed; Python syntax compilation, shell syntax checks, and local Markdown target checks passed.
+- Nine portable configuration/launcher tests passed, including explicit 7B 128K JSON selection and the 3B config override. Python syntax compilation, shell syntax checks, and local Markdown target checks passed.
 - On 2026-10-18, both original model JSONs were compared byte-for-byte with the files supplied by the maintainer. Transformers 4.57.1 loaded both configurations with the expected architecture, 128K position limit, and RoPE base. With `use_sliding_window=false`, Transformers normalizes the effective window to `None`; the original JSON values remain intact. This checks configuration loading, not the pinned GPU training stack.
 - Training dependency declarations and uv resolution settings are unchanged. An offline `uv 0.9.8 lock --check` could not finish because the referenced CUDA PyTorch wheel was absent from the cache. The lock file was not regenerated.
 - Full training, inference metrics, real-checkpoint export, and paid API synthesis were not run locally.
