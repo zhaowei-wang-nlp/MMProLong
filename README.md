@@ -146,7 +146,7 @@ bash scripts/qwen_vl_job/run_qwen3_vl_8b_vqa.sh \
   --train.output_dir /shared/outputs/mmprolong-qwen3
 ```
 
-This recipe uses Qwen3-VL's own pretrained model configuration and chat template.
+This recipe uses Qwen3-VL's native 256K model configuration and chat template unchanged, with a 128K training sequence limit.
 
 ### Export checkpoints
 
@@ -172,9 +172,9 @@ The 256K/512K document experiments extend the benchmarks by padding negative doc
 <details>
 <summary>1. Model configuration and RoPE</summary>
 
-The included [128K Qwen2.5-VL-7B configuration](configs/model_configs/qwen/mmprolong_qwen25_vl_7b_128k.json) sets `rope_theta=4000000`, `max_position_embeddings=131072`, and `use_cache=false`. It preserves Qwen's mRoPE sections without adding YaRN or dynamic inference scaling.
+The original 128K training configurations are provided for [Qwen2.5-VL-3B](configs/model_configs/qwen/mmprolong_qwen25_vl_3b_128k.json) and [Qwen2.5-VL-7B](configs/model_configs/qwen/mmprolong_qwen25_vl_7b_128k.json). Both use `rope_theta=4000000` and `max_position_embeddings=131072`, preserving Qwen's mRoPE sections. The files retain all original settings, including `sliding_window=131072`, `use_sliding_window=false`, and `use_cache=true`.
 
-This JSON was prepared from the public base configuration and the paper's long-context parameters; the original training-run `config_128K.json` is not included in this repository. Configuration provenance and script/paper differences are recorded in the [configuration notes](docs/reproduction_notes.md). This JSON is specific to Qwen2.5-VL-7B; Qwen3-VL uses its own config.
+The main training entry uses the 7B configuration. To use the 3B backbone, set `model.model_path` and `model.tokenizer_path` to `Qwen/Qwen2.5-VL-3B-Instruct`, and `model.config_path` to the 3B JSON. Match all three paths to the same backbone. Qwen3-VL uses its own native 256K model configuration unchanged.
 
 The generic `configs/multimodal/qwen25_vl/qwen25_vl.yaml` is an inherited 4K example. Use `configs/mmprolong/qwen25_vl_7b_128k.yaml` for MMProLong training.
 
@@ -211,7 +211,7 @@ Historical short-data mixtures are in [scripts/qwen_vl_short_mix_yaml/](scripts/
 
 ```text
 configs/mmprolong/                 Complete MMProLong training entries
-configs/model_configs/qwen/        Model JSONs, including the 128K Qwen2.5 config
+configs/model_configs/qwen/        Model JSONs, including original 3B/7B 128K configs
 scripts/qwen_vl_job/               Training and checkpoint-export wrappers
 scripts/qwen_vl_mix_yaml/          Main mixture and extraction/reasoning ablations
 scripts/qwen_vl_short_mix_yaml/    Historical short-data ablations (6:4 long mix)
