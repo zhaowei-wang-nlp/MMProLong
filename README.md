@@ -268,10 +268,10 @@ For questions about MMProLong, please open a [GitHub issue](https://github.com/z
 If you find MMProLong useful, please cite our paper:
 
 ```bibtex
-@article{wang2026mmprolong,
+@inproceedings{wang2026mmprolong,
   title={Training Long-Context Vision-Language Models Effectively with Generalization Beyond 128K Context},
   author={Wang, Zhaowei and Luo, Lishu and Duan, Haodong and Liu, Weiwei and Wu, Sijin and Luo, Ji and Yan, Shen and Peng, Shuai and Yuan, Sihang and Huang, Chaoyi and Lin, Yi and Song, Yangqiu},
-  journal={arXiv preprint arXiv:2605.13831},
+  booktitle={Advances in Neural Information Processing Systems (NeurIPS 2026)},
   year={2026},
   url={https://arxiv.org/abs/2605.13831}
 }
