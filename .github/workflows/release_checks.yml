@@ -1,0 +1,23 @@
+name: Portable release checks
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install pyyaml ruff==0.13.1
+      - run: make quality
+      - run: make test-release
+      - run: |
+          for script in train.sh scripts/qwen_vl_job/*.sh; do
+            bash -n "$script"
+          done
+      - run: python -m compileall -q veomni tasks scripts data_synthesis_doc_vqa

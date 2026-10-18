@@ -1,0 +1,10 @@
+# Replace each source with a directory containing your parquet shards.
+sources:
+  - /path/to/data/short_instructions
+schedule:
+  - schedule_type: const
+    token_weights: [1.0]
+    avg_len: [1.26]
+    weights: [1.0]
+names:
+  - llavaov_sft

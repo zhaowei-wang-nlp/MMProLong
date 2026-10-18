@@ -1,0 +1,62 @@
+cff-version: 1.2.0
+message: "If you use MMProLong, please cite the paper below and acknowledge the upstream VeOmni framework."
+title: MMProLong
+type: software
+url: "https://github.com/zhaowei-wang-nlp/MMProLong"
+repository-code: "https://github.com/zhaowei-wang-nlp/MMProLong"
+authors:
+  - family-names: Wang
+    given-names: Zhaowei
+  - family-names: Luo
+    given-names: Lishu
+  - family-names: Duan
+    given-names: Haodong
+  - family-names: Liu
+    given-names: Weiwei
+  - family-names: Wu
+    given-names: Sijin
+  - family-names: Luo
+    given-names: Ji
+  - family-names: Yan
+    given-names: Shen
+  - family-names: Peng
+    given-names: Shuai
+  - family-names: Yuan
+    given-names: Sihang
+  - family-names: Huang
+    given-names: Chaoyi
+  - family-names: Lin
+    given-names: Yi
+  - family-names: Song
+    given-names: Yangqiu
+preferred-citation:
+  type: article
+  title: "Training Long-Context Vision-Language Models Effectively with Generalization Beyond 128K Context"
+  year: 2026
+  journal: "arXiv preprint arXiv:2605.13831"
+  url: "https://arxiv.org/abs/2605.13831"
+  authors:
+    - family-names: Wang
+      given-names: Zhaowei
+    - family-names: Luo
+      given-names: Lishu
+    - family-names: Duan
+      given-names: Haodong
+    - family-names: Liu
+      given-names: Weiwei
+    - family-names: Wu
+      given-names: Sijin
+    - family-names: Luo
+      given-names: Ji
+    - family-names: Yan
+      given-names: Shen
+    - family-names: Peng
+      given-names: Shuai
+    - family-names: Yuan
+      given-names: Sihang
+    - family-names: Huang
+      given-names: Chaoyi
+    - family-names: Lin
+      given-names: Yi
+    - family-names: Song
+      given-names: Yangqiu

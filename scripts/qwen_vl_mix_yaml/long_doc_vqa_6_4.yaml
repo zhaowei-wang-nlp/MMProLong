@@ -1,0 +1,12 @@
+# Replace each source with a directory containing your parquet shards.
+sources:
+  - /path/to/data/extract_single
+  - /path/to/data/extract_multi
+  - /path/to/data/reasoning
+schedule:
+  - schedule_type: const
+    weights: [0.3,0.3,0.4]
+names:
+  - extract_sp
+  - extract_mp
+  - math_ap

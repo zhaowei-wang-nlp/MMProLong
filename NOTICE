@@ -1,0 +1,17 @@
+MMProLong
+https://github.com/zhaowei-wang-nlp/MMProLong
+
+This repository is a research fork of VeOmni:
+https://github.com/ByteDance-Seed/VeOmni
+
+VeOmni copyright 2025 ByteDance Ltd. and/or its affiliates.
+The inherited Apache License 2.0 is provided in LICENSE. Existing copyright,
+license, and third-party attribution notices in source files are retained.
+Individual files may carry additional third-party notices; this notice does
+not replace or relicense them. Model weights and datasets have their own terms.
+
+MMProLong modifications include long-document VQA data synthesis, Qwen-VL
+data processing and training integration, long-context mixtures, experiment
+configurations, checkpoint utilities, and release documentation. The veomni
+Python namespace is retained for compatibility with the upstream framework.
+This fork is maintained separately from upstream VeOmni.
