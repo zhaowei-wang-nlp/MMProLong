@@ -33,12 +33,13 @@ Please check out the [paper](https://arxiv.org/abs/2605.13831) for the study and
 ## 📢 Latest Updates
 
 - **[Oct 18, 2026]** 🚀 We release the [MMProLong code](https://github.com/zhaowei-wang-nlp/MMProLong), including **128K training recipes** for Qwen2.5-VL-7B and Qwen3-VL-8B, long-document VQA synthesis scripts, data-mixture ablations, and checkpoint export utilities.
-- **Model checkpoints and training data are coming soon.** The original document pool is private; a replacement pool built from publicly available PDFs is planned.
+- The **data generation pipeline is open source**. The original training corpus is not publicly released. Model checkpoints are not included in this release.
 
 ## Quick Links
 
 - [Setup](#setup)
 - [Data](#data)
+- [Data synthesis](#data-synthesis)
 - [Running training](#running-training)
 - [Running evaluation](#running-evaluation)
 - [Tips](#tips)
@@ -50,7 +51,7 @@ Please check out the [paper](https://arxiv.org/abs/2605.13831) for the study and
 
 ## Setup
 
-The supplied GPU environment requires **Linux x86_64, Python 3.11, and NVIDIA GPUs** with compatible drivers. Dependencies are pinned to PyTorch 2.8.0 and CUDA 12.8. The recipes use FlashAttention 2; the GPU extra also installs FlashAttention 3.
+Dependencies are pinned to PyTorch 2.8.0 and CUDA 12.8. The recipes use FlashAttention 2; the GPU extra also installs FlashAttention 3.
 
 Clone the repository and set up the environment:
 
@@ -74,9 +75,18 @@ Our final recipe uses **long-document VQA only**, with a pool-native distributio
 
 This gives an **8:2 extraction-to-reasoning ratio**, with no short data. The corresponding configuration is [long_doc_vqa_8_2.yaml](scripts/qwen_vl_mix_yaml/long_doc_vqa_8_2.yaml). Its weights control dataset sampling; the length distribution must be established when preparing the corpus.
 
-### Prepare your training data
+### Data synthesis
 
-**The training corpus is not included yet.** To synthesize replacement data, follow [data_synthesis_doc_vqa/README.md](data_synthesis_doc_vqa/README.md). The reference pipeline requires your own documents, rendered page images, OCR metadata, few-shot exemplars, and API access.
+The training corpus used in the paper is not publicly released. **We release the MMProLong data generation pipeline** in [data_synthesis_doc_vqa/](data_synthesis_doc_vqa/):
+
+1. **Render PDF pages** into images: [1_convert_pdf_page_to_image.py](data_synthesis_doc_vqa/1_convert_pdf_page_to_image.py).
+2. **Prepare few-shot exemplars** for the three QA tasks: [2_filter_long_vqa_exemplar.py](data_synthesis_doc_vqa/2_filter_long_vqa_exemplar.py).
+3. **Generate document-grounded QA pairs** with a multimodal model API: [3_prompt_API_for_long_vqa_data.py](data_synthesis_doc_vqa/3_prompt_API_for_long_vqa_data.py).
+4. **Build VeOmni training parquet files** from the generated QA pairs and full-document page images: [4_postprocess_VeOmni_format.py](data_synthesis_doc_vqa/4_postprocess_VeOmni_format.py).
+
+The generation prompts and output parsers are included in [prompt_utils.py](data_synthesis_doc_vqa/prompt_utils.py) and [api_parse_utils.py](data_synthesis_doc_vqa/api_parse_utils.py). See the [data generation guide](data_synthesis_doc_vqa/README.md) for input formats and commands to run the pipeline on your own documents.
+
+### Prepare your training data
 
 Once your parquet shards are ready, copy the mixture configuration:
 
@@ -102,8 +112,6 @@ The main training configuration is **[configs/mmprolong/qwen25_vl_7b_128k.yaml](
 - AdamW, peak language-model LR **1e-5**, **10% warmup**, and cosine decay to **1e-6**.
 - FSDP2 with `data_parallel_shard_size=8`, **Ulysses size 2**, and gradient checkpointing.
 
-The default parallel and batch settings support **16, 32, or 64 GPUs**. These counts describe the required topology; sufficient GPU memory is also needed. The paper reports training on 64 H20 GPUs. An 8-GPU run requires an explicit shard-size override and has not been validated in this release.
-
 Download `Qwen/Qwen2.5-VL-7B-Instruct`, or allow Hugging Face to resolve it. For local weights, override both the model and tokenizer paths. Run from the repository root:
 
 ```bash
@@ -127,8 +135,6 @@ bash scripts/qwen_vl_job/run_qwen25_vl_7b_vqa.sh \
 ```
 
 Use shared data and output paths across nodes. W&B is opt-in via `--train.use_wandb true --train.wandb_name <run-name>`.
-
-**Reproduction note:** the defaults preserve the original scripts rather than silently changing their settings to match the paper. Known differences and validation limits are recorded in [docs/reproduction_notes.md](docs/reproduction_notes.md). The included 128K model JSON was reconstructed from the public base config and the paper; equivalence to the original run assets still needs verification. See [Tips](#tips) for details.
 
 ### Qwen3-VL-8B
 
@@ -168,7 +174,7 @@ The 256K/512K document experiments extend the benchmarks by padding negative doc
 
 The included [128K Qwen2.5-VL-7B configuration](configs/model_configs/qwen/mmprolong_qwen25_vl_7b_128k.json) sets `rope_theta=4000000`, `max_position_embeddings=131072`, and `use_cache=false`. It preserves Qwen's mRoPE sections without adding YaRN or dynamic inference scaling.
 
-The original launcher referenced an unavailable `config_128K.json`. This replacement was reconstructed from the public base config and the paper, and should be checked against the original run's `model_assets/config.json` before claiming exact reproduction. It is specific to Qwen2.5-VL-7B; Qwen3-VL uses its own config.
+This JSON was prepared from the public base configuration and the paper's long-context parameters; the original training-run `config_128K.json` is not included in this repository. Configuration provenance and script/paper differences are recorded in the [configuration notes](docs/reproduction_notes.md). This JSON is specific to Qwen2.5-VL-7B; Qwen3-VL uses its own config.
 
 The generic `configs/multimodal/qwen25_vl/qwen25_vl.yaml` is an inherited 4K example. Use `configs/mmprolong/qwen25_vl_7b_128k.yaml` for MMProLong training.
 
@@ -209,7 +215,7 @@ configs/model_configs/qwen/        Model JSONs, including the 128K Qwen2.5 confi
 scripts/qwen_vl_job/               Training and checkpoint-export wrappers
 scripts/qwen_vl_mix_yaml/          Main mixture and extraction/reasoning ablations
 scripts/qwen_vl_short_mix_yaml/    Historical short-data ablations (6:4 long mix)
-data_synthesis_doc_vqa/            Data-synthesis reference implementation
+data_synthesis_doc_vqa/            MMProLong data generation pipeline
 tasks/omni/train_qwen_vl.py        Qwen2.5-VL / Qwen3-VL training task
 tasks/data/vlm_data_process.py     Qwen-VL sample transformations
 veomni/                           Inherited framework and MMProLong modifications

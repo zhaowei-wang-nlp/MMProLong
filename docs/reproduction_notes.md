@@ -6,7 +6,7 @@ Reviewed against [arXiv:2605.13831](https://arxiv.org/html/2605.13831), especial
 
 1. **Token budget.** The paper defines B = 2^30 and says 5B, implying 5,368,709,120 tokens. Both original launch scripts set `data.train_size=5_000_000_000`. The released YAMLs retain 5,000,000,000. With 32 × 131,072 nominal tokens per update and default zero packing margin/batch warmup, `TrainingArguments.compute_train_steps` returns 1,193 steps; the binary budget would yield 1,280. This is a step-budget calculation, not a measurement of actual packed tokens. Check the original training logs before revising the budget statement.
 
-2. **Parallelism.** Table 6 and Appendix 8.2 say sequence parallel size 2 and FSDP size 4. The original scripts use `ulysses_parallel_size=2` and `data_parallel_shard_size=8`; the release preserves both. The corresponding code computes data-parallel size as world size / 2. At 64 GPUs, it produces 32 data-parallel workers and 4 replication groups. VeOmni also folds sequence parallelism into its FSDP mesh (`include_sp_in_fsdp=True`), so the actual FSDP sharding mesh spans 8 × 2 ranks. State both the configured dimensions and mesh convention in the revised paper. These defaults cannot launch on just 8 GPUs.
+2. **Parallelism.** Table 6 and Appendix 8.2 say sequence parallel size 2 and FSDP size 4. The original scripts use `ulysses_parallel_size=2` and `data_parallel_shard_size=8`; the release preserves both. The corresponding code computes data-parallel size as world size / 2. At 64 GPUs, it produces 32 data-parallel workers and 4 replication groups. VeOmni also folds sequence parallelism into its FSDP mesh (`include_sp_in_fsdp=True`), so the actual FSDP sharding mesh spans 8 × 2 ranks. State both the configured dimensions and mesh convention in the revised paper. At 8 GPUs, the data-parallel size would be 4, which cannot be divided into shards of size 8. Overriding `data_parallel_shard_size=4` satisfies that topology check with Ulysses size 2; it does not establish that 128K training fits the available GPU memory. This is derived from the configuration checks, not a measured 8-GPU training result.
 
 3. **Short-data ablations.** Section 5.3 says the long-context component is fixed at extraction:reasoning = 8:2. The existing `long_doc_vqa_6_4_short{20,40,60,80}.yaml` files use 6:4. For example, short40 has token weights `[0.18, 0.18, 0.24, 0.40]`, which normalize within long data to `[0.30, 0.30, 0.40]`. The filenames and weights remain unchanged. The short100 control contains only short data. Confirm experiment provenance before changing text, plots, or labels; these source files alone cannot establish which mixture generated each published result.
 
@@ -16,7 +16,7 @@ Reviewed against [arXiv:2605.13831](https://arxiv.org/html/2605.13831), especial
 
 ## Model configuration that needs run-asset verification
 
-The original Qwen2.5 launcher references a local `config_128K.json`, but that JSON is absent from the checkout and ignored by the previous generic `config.json` rules. Therefore we cannot verify its original RoPE settings from repository source alone.
+The original Qwen2.5 launcher reads `config_128K.json` from its externally staged model directory. That file was not included in the provided checkout, so its original RoPE settings cannot be verified from repository source alone.
 
 The release provides `configs/model_configs/qwen/mmprolong_qwen25_vl_7b_128k.json`, derived from the public [Qwen2.5-VL-7B-Instruct configuration](https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct/blob/main/config.json), with only these changes:
 
@@ -38,7 +38,7 @@ The public config's 128,000 position limit should not be confused with the paper
 ## What is still needed for exact reproduction
 
 - Original run assets/logs to resolve the discrepancies above and verify the reconstructed JSON.
-- A releasable training corpus or a documented public replacement, plus final dataset statistics. Three source weights do not enforce a specific sequence-length distribution.
+- The original training corpus is not publicly released. The data generation pipeline can be used on another document collection, but the resulting corpus and metrics will differ. Final dataset statistics are needed to assess corpus differences; three source weights do not enforce a specific sequence-length distribution.
 - Model weights, benchmark artifacts for the 256K/512K extensions, and pinned evaluation settings.
 - Validation on the intended GPU cluster. Portable checks verify configuration structure and launcher behavior; they do not execute distributed training, checkpoint export on real weights, or the paid synthesis pipeline.
 

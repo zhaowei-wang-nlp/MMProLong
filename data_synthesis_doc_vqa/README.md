@@ -1,19 +1,17 @@
 # Long-Document VQA Data Synthesis
 
-This folder contains the public-facing data synthesis pipeline used to build long-document VQA training examples for MMProLong.
+This folder contains the MMProLong data generation pipeline: PDF-page rendering, few-shot exemplar preparation, document-grounded QA synthesis, and conversion to VeOmni training parquet files. The generation prompts and QA output parsers are included.
 
-Important: these scripts are **not an out-of-the-box runnable pipeline**. The document pool used in the paper is internal and cannot be released. The original internal preprocessing steps for filtering that private document pool, compacting internal parquet shards, and downloading PDF pages / OCR blocks from internal storage have been removed. For open-source use, this folder should be treated as a reusable reference implementation that starts from user-prepared document metadata, rendered page images, OCR block files, and few-shot exemplars.
-
-A replacement pool made from publicly available PDFs is planned; it is not included in this release.
+**The training corpus used in the paper is not publicly released.** To run the pipeline on your own documents, prepare metadata parquet files, single-page PDFs or rendered page images, OCR/layout blocks, and few-shot exemplars as described below. Corpus acquisition, OCR extraction, and internal storage-specific preprocessing/download steps are outside the released pipeline.
 
 ## What This Pipeline Does
 
 Given a set of long documents represented as page images and OCR/layout metadata, the pipeline:
 
-1. Renders single-page PDF files into page images: 1_convert_pdf_page_to_image.py
-2. Prepares few-shot exemplars for QA generation: 2_filter_long_vqa_exemplar.py
-3. Calls an OpenAI-compatible multimodal API to synthesize document-grounded QA pairs: 3_prompt_API_for_long_vqa_data.py
-4. Builds VeOmni/LLaVA-style parquet files for long-context continued pre-training: 4_postprocess_VeOmni_format.py
+1. Renders single-page PDF files into page images: [1_convert_pdf_page_to_image.py](1_convert_pdf_page_to_image.py).
+2. Prepares few-shot exemplars for QA generation: [2_filter_long_vqa_exemplar.py](2_filter_long_vqa_exemplar.py).
+3. Calls an OpenAI-compatible multimodal API to synthesize document-grounded QA pairs: [3_prompt_API_for_long_vqa_data.py](3_prompt_API_for_long_vqa_data.py).
+4. Builds VeOmni/LLaVA-style parquet files for long-context continued pre-training: [4_postprocess_VeOmni_format.py](4_postprocess_VeOmni_format.py).
 
 The final examples contain a full-document visual context, a question, an answer, evidence metadata, token counts, and image bytes.
 
@@ -288,7 +286,7 @@ python data_synthesis_doc_vqa/4_postprocess_VeOmni_format.py ...
 
 ## Notes and Limitations
 
-- This folder does not include the private document pool used in the paper, so the scripts are not expected to run successfully without user-prepared replacement data.
+- The source document pool used in the paper is not distributed. The released code operates on user-prepared documents and metadata.
 - Users must prepare their own metadata parquet, page images, OCR blocks, and API credentials.
 - The default path values are placeholders and should be replaced with local paths. Check the filename/directory conventions above; these scripts retain those conventions from the reference pipeline.
 - Render at 144 DPI and preserve page order. Generate the three task pools separately and point the main mixture YAML at their output directories.
