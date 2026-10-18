@@ -1,3 +1,4 @@
+# Short-only control; no long-context sources.
 # Replace each source with a directory containing your parquet shards.
 sources:
   - /path/to/data/short_instructions

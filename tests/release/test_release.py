@@ -53,6 +53,29 @@ class ReleaseConfigTests(unittest.TestCase):
                         self.assertEqual(len(stage["weights"]), count)
                         self.assertTrue(all(weight >= 0 for weight in stage["weights"]))
                         self.assertAlmostEqual(sum(stage["weights"]), 1.0, places=4)
+                        if "token_weights" in stage:
+                            self.assertEqual(len(stage["token_weights"]), count)
+                            self.assertEqual(len(stage["avg_len"]), count)
+                            self.assertTrue(all(length > 0 for length in stage["avg_len"]))
+                            self.assertAlmostEqual(sum(stage["token_weights"]), 1.0)
+                            # The loader reads sample weights; recover their expected token shares.
+                            token_mass = [
+                                weight * length for weight, length in zip(stage["weights"], stage["avg_len"])
+                            ]
+                            total = sum(token_mass)
+                            for mass, expected in zip(token_mass, stage["token_weights"]):
+                                self.assertAlmostEqual(mass / total, expected, places=7)
+
+                            short_fraction = int(path.stem.rsplit("short", 1)[1]) / 100
+                            self.assertAlmostEqual(stage["token_weights"][-1], short_fraction)
+                            if short_fraction < 1:
+                                extraction, reasoning = map(int, path.stem.split("_")[3:5])
+                                long_mass = sum(token_mass[:-1])
+                                self.assertAlmostEqual(
+                                    sum(token_mass[:2]) / long_mass,
+                                    extraction / (extraction + reasoning),
+                                    places=7,
+                                )
 
 
 class LauncherTests(unittest.TestCase):

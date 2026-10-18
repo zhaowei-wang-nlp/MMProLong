@@ -130,7 +130,7 @@ The main training configuration is **[configs/mmprolong/qwen25_vl_7b_128k.yaml](
 - **128K context**, global batch size **32**, and micro batch size **1**.
 - A **5,000,000,000-token** training budget.
 - AdamW, peak language-model LR **1e-5**, **10% warmup**, and cosine decay to **1e-6**.
-- FSDP2 with `data_parallel_shard_size=8`, **Ulysses size 2**, and gradient checkpointing.
+- FSDP2 with `data_parallel_shard_size=4`, **Ulysses size 2**, and gradient checkpointing.
 
 Download `Qwen/Qwen2.5-VL-7B-Instruct`, or allow Hugging Face to resolve it. For local weights, override both the model and tokenizer paths. Run from the repository root:
 
@@ -237,7 +237,9 @@ Set `LOG_FILE` to change the launcher's default `log.txt`. If the checkout is on
 
 Extraction-to-reasoning mixtures are in [scripts/qwen_vl_mix_yaml/](scripts/qwen_vl_mix_yaml/): `0_10`, `2_8`, `4_6`, `6_4`, `8_2`, and `10_0`. Select an edited mixture with `--data.train_path`. The `even` configuration uses equal task weights; it does not enforce a uniform sequence-length distribution.
 
-Historical short-data mixtures are in [scripts/qwen_vl_short_mix_yaml/](scripts/qwen_vl_short_mix_yaml/). Their long-data component uses an extraction-to-reasoning ratio of **6:4**. Their `weights` are sample probabilities derived from `token_weights / avg_len`; the loader consumes `weights` directly. Recalculate the probabilities for a new corpus.
+Short-data mixtures are in [scripts/qwen_vl_short_mix_yaml/](scripts/qwen_vl_short_mix_yaml/). The `long_doc_vqa_8_2_short{20,40,60,80}.yaml` files keep the long-data extraction-to-reasoning ratio at **8:2**, with single-page extraction, multi-page extraction, and reasoning taking **40%, 40%, and 20%** of the long-data token budget. The `short100` file is a short-only control. Their `weights` are sample probabilities derived from `token_weights / avg_len`; the loader consumes `weights` directly. Recalculate the probabilities for a new corpus.
+
+For example, [long_doc_vqa_8_2_short40.yaml](scripts/qwen_vl_short_mix_yaml/long_doc_vqa_8_2_short40.yaml) assigns **24% / 24% / 12% / 40%** of tokens to single-page extraction, multi-page extraction, reasoning, and short data. After replacing its source paths, select it with `--data.train_path` to run the 40% short-data ablation.
 
 </details>
 
@@ -248,7 +250,7 @@ configs/mmprolong/                 Complete MMProLong training entries
 configs/model_configs/qwen/        Model JSONs, including original 3B/7B 128K configs
 scripts/qwen_vl_job/               Training and checkpoint-export wrappers
 scripts/qwen_vl_mix_yaml/          Main mixture and extraction/reasoning ablations
-scripts/qwen_vl_short_mix_yaml/    Historical short-data ablations (6:4 long mix)
+scripts/qwen_vl_short_mix_yaml/    Short-data ablations (8:2 long mix)
 data_synthesis_doc_vqa/            MMProLong data generation pipeline
 tasks/omni/train_qwen_vl.py        Qwen2.5-VL / Qwen3-VL training task
 tasks/data/vlm_data_process.py     Qwen-VL sample transformations

@@ -38,7 +38,7 @@ train:
   freeze_vit: false
   data_parallel_mode: fsdp2
   data_parallel_replicate_size: -1
-  data_parallel_shard_size: 8
+  data_parallel_shard_size: 4
   ulysses_parallel_size: 2
   init_device: meta
   enable_reentrant: false

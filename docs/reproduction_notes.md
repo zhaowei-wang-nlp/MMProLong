@@ -1,18 +1,22 @@
 # Paper/code differences and release provenance
 
-Reviewed against [arXiv:2605.13831](https://arxiv.org/html/2605.13831), especially Sections 3, 5.3, Appendix 8, and Table 6. The code baseline is repository commit `9b478d9` before release cleanup. **Maintainer decision: preserve the existing scripts' numeric settings and correct the paper later.** Moving these values into explicit training YAMLs does not resolve the following discrepancies.
+Reviewed against [arXiv:2605.13831](https://arxiv.org/html/2605.13831) and the NeurIPS 2026 camera-ready manuscript. The code baseline is repository commit `9b478d9` before release cleanup. Earlier releases preserved the original scripts' numeric settings. On 2026-10-18, the maintainer requested that the released short-data mixtures and parallelism configuration be aligned with the paper.
 
-## Differences to resolve in the paper
+## Configuration updates aligned with the paper
+
+- **Parallelism.** Both released training entries now use `ulysses_parallel_size=2` and `data_parallel_shard_size=4`, replacing the historical shard setting of 8. At 64 GPUs, the data-parallel dimension is 32 and the automatically inferred replication count is 8. At 8 GPUs, those dimensions are 4 and 1, respectively. VeOmni folds sequence parallelism into the FSDP sharding mesh (`include_sp_in_fsdp=True`), so each sharding group spans 4 × 2 ranks; the configured shard dimension and the combined mesh size are distinct. These are configuration/topology checks, not measurements of GPU memory usage or training throughput.
+
+- **Short-data ablations.** The released `long_doc_vqa_8_2_short{20,40,60,80}.yaml` files now keep extraction:reasoning = 8:2 within the long-data token budget, matching Section 5.3. They replace the historical `long_doc_vqa_6_4_short*.yaml` files. Both `token_weights` and the loader's actual sample `weights` have been updated. For short40, token weights are `[0.24, 0.24, 0.12, 0.40]`, giving `[0.40, 0.40, 0.20]` within long data. Sample probabilities are normalized from `token_weights / avg_len`; recompute them using the average lengths of a new corpus. The renamed short100 control still contains only short data.
+
+These changes align the released configuration with the manuscript. Historical training settings remain available in Git history; linking published scores to their exact runs still requires the original experiment logs.
+
+## Remaining paper/code details
 
 1. **Token budget.** The paper defines B = 2^30 and says 5B, implying 5,368,709,120 tokens. Both original launch scripts set `data.train_size=5_000_000_000`. The released YAMLs retain 5,000,000,000. With 32 × 131,072 nominal tokens per update and default zero packing margin/batch warmup, `TrainingArguments.compute_train_steps` returns 1,193 steps; the binary budget would yield 1,280. This is a step-budget calculation, not a measurement of actual packed tokens. Check the original training logs before revising the budget statement.
 
-2. **Parallelism.** Table 6 and Appendix 8.2 say sequence parallel size 2 and FSDP size 4. The original scripts use `ulysses_parallel_size=2` and `data_parallel_shard_size=8`; the release preserves both. The corresponding code computes data-parallel size as world size / 2. At 64 GPUs, it produces 32 data-parallel workers and 4 replication groups. VeOmni also folds sequence parallelism into its FSDP mesh (`include_sp_in_fsdp=True`), so the actual FSDP sharding mesh spans 8 × 2 ranks. State both the configured dimensions and mesh convention in the revised paper. At 8 GPUs, the data-parallel size would be 4, which cannot be divided into shards of size 8. Overriding `data_parallel_shard_size=4` satisfies that topology check with Ulysses size 2; it does not establish that 128K training fits the available GPU memory. This is derived from the configuration checks, not a measured 8-GPU training result.
+2. **Vision learning rate.** The paper describes a peak LR of 1e-5 and minimum LR of 1e-6. The task's `MyTrainingArguments` sets a separate vision peak LR of 1e-6, and `get_param_groups` assigns it to parameters whose names contain `visual`. The release makes that default explicit. Both groups receive the same scheduler multiplier, so the vision group's terminal LR is 1e-7. Verify whether the paper should describe separate language/vision rates.
 
-3. **Short-data ablations.** Section 5.3 says the long-context component is fixed at extraction:reasoning = 8:2. The existing `long_doc_vqa_6_4_short{20,40,60,80}.yaml` files use 6:4. For example, short40 has token weights `[0.18, 0.18, 0.24, 0.40]`, which normalize within long data to `[0.30, 0.30, 0.40]`. The filenames and weights remain unchanged. The short100 control contains only short data. Confirm experiment provenance before changing text, plots, or labels; these source files alone cannot establish which mixture generated each published result.
-
-4. **Vision learning rate.** The paper describes a peak LR of 1e-5 and minimum LR of 1e-6. The task's `MyTrainingArguments` sets a separate vision peak LR of 1e-6, and `get_param_groups` assigns it to parameters whose names contain `visual`. The release makes that default explicit. Both groups receive the same scheduler multiplier, so the vision group's terminal LR is 1e-7. Verify whether the paper should describe separate language/vision rates.
-
-5. **Source-corpus boundaries.** Original mixture paths were named `min32max49`, whereas the paper describes 32–50 pages. The postprocessor applies inclusive page bounds and defaults to a 124K upper token filter. The synthesis guide preserves the historical 32–49 example and documents both filters. Verify corpus statistics before deciding whether this is a naming convention or an actual sample-selection difference.
+3. **Source-corpus boundaries.** Original mixture paths were named `min32max49`, whereas the paper describes 32–50 pages. The postprocessor applies inclusive page bounds and defaults to a 124K upper token filter. The synthesis guide preserves the historical 32–49 example and documents both filters. Verify corpus statistics before deciding whether this is a naming convention or an actual sample-selection difference.
 
 ## Original model configurations
 
@@ -31,7 +35,7 @@ Qwen3-VL retains its native 256K model configuration unchanged. Its existing MMP
 
 ## Release behavior changes
 
-- Original numerical launch settings are in `configs/mmprolong/`; wrapper paths remain available. W&B becomes opt-in, and user-editable local/shared paths replace internal storage paths and model-copy commands.
+- Training settings are in `configs/mmprolong/`, including the parallelism update described above; wrapper paths remain available. W&B becomes opt-in, and user-editable local/shared paths replace internal storage paths and model-copy commands.
 - The launcher honors standard `NNODES`, `NODE_RANK`, `MASTER_ADDR`, `MASTER_PORT`, and `NPROC_PER_NODE` without overwriting them from a private scheduler. Arguments are quoted and failures propagate through logging.
 - YAML `data.mm_configs` now matches the task dataclass. The inherited examples spell it `mm_config`, which the parser silently ignores. The explicit values are the intended existing video defaults; the long-document recipe uses images.
 - Checkpoint export uses the actual saved `model_assets` rather than copying and swapping a separate base-model config.
@@ -54,3 +58,5 @@ The [public repository](https://github.com/zhaowei-wang-nlp/MMProLong) starts fr
 - On 2026-10-18, both original model JSONs were compared byte-for-byte with the files supplied by the maintainer. Transformers 4.57.1 loaded both configurations with the expected architecture, 128K position limit, and RoPE base. With `use_sliding_window=false`, Transformers normalizes the effective window to `None`; the original JSON values remain intact. This checks configuration loading, not the pinned GPU training stack.
 - Training dependency declarations and uv resolution settings are unchanged. An offline `uv 0.9.8 lock --check` could not finish because the referenced CUDA PyTorch wheel was absent from the cache. The lock file was not regenerated.
 - Full training, inference metrics, real-checkpoint export, and paid API synthesis were not run locally.
+
+- On 2026-10-18, release checks were extended to recover token proportions from sample probabilities and corpus mean lengths for all short-data mixtures. This catches stale loader weights when token ratios change.

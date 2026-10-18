@@ -1,5 +1,4 @@
-# MMProLong release entry: preserves the original launch script's numeric settings.
-# See docs/reproduction_notes.md for discrepancies with arXiv:2605.13831.
+# MMProLong backbone-transfer entry; native Qwen3-VL model configuration is unchanged.
 model:
   model_path: Qwen/Qwen3-VL-8B-Instruct
   tokenizer_path: Qwen/Qwen3-VL-8B-Instruct
@@ -36,7 +35,7 @@ train:
   freeze_vit: false
   data_parallel_mode: fsdp2
   data_parallel_replicate_size: -1
-  data_parallel_shard_size: 8
+  data_parallel_shard_size: 4
   ulysses_parallel_size: 2
   init_device: meta
   enable_reentrant: false

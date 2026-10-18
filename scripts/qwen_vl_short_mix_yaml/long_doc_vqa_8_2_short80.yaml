@@ -1,3 +1,5 @@
+# Long data uses extraction:reasoning = 8:2 (single:multi:reasoning = 4:4:2).
+# weights are normalized token_weights / avg_len; recalculate for your corpus.
 # Replace each source with a directory containing your parquet shards.
 sources:
   - /path/to/data/extract_single
@@ -6,9 +8,9 @@ sources:
   - /path/to/data/short_instructions
 schedule:
   - schedule_type: const
-    token_weights: [0.18, 0.18, 0.24, 0.4]
+    token_weights: [0.08, 0.08, 0.04, 0.8]
     avg_len: [83.26, 83.31, 83.26, 1.26]
-    weights: [0.00666, 0.00665, 0.00888, 0.97781]
+    weights: [0.0015076292, 0.0015067244, 0.0007538146, 0.9962318318]
 names:
   - extract_sp
   - extract_mp
