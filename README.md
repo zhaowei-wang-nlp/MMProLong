@@ -16,6 +16,9 @@
     <a href="https://huggingface.co/papers/2605.13831">
         <img alt="Hugging Face Papers" src="https://img.shields.io/badge/🤗-Hugging%20Face%20Papers-yellow">
     </a>
+    <a href="https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B">
+        <img alt="Separately constructed public dataset" src="https://img.shields.io/badge/Dataset-Public%20Corpus-yellow">
+    </a>
     <a href="https://github.com/ByteDance-Seed/VeOmni">
         <img alt="Fork of VeOmni" src="https://img.shields.io/badge/Fork%20of-VeOmni-blue">
     </a>
@@ -32,14 +35,18 @@ MMProLong studies how to train long-context vision-language models effectively t
 
 Please check out the [paper](https://arxiv.org/abs/2605.13831) for the study and results. This repository explains how to prepare data, run training, and export checkpoints.
 
+**Public-data release:** [MMProLong-public-5B](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B) is a **separately constructed corpus, not the original training data used in the paper**. Due to **ByteDance's internal data governance and management requirements**, we cannot open-source the original paper corpus. The current public pipeline uses **GPT-5.6-sol**, while the released snapshot retains labeled historical GPT-5.5 examples. See the [public dataset guide and statistics](docs/public_dataset.md).
+
 ## 📢 Latest Updates
 
+- **[Nov 8, 2026]** We release the [separately constructed public corpus](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B): **31,692 QA, 4,072 PDFs, 98,412 page images, and 1.941B estimated training tokens** (38.82% of a 5B target), with [document labels, statistics, and generation provenance](docs/public_dataset.md). This snapshot contains **3,168 GPT-5.6-sol QA and 28,524 GPT-5.5 QA**.
 - **[Oct 18, 2026]** 🚀 We release the [MMProLong code](https://github.com/zhaowei-wang-nlp/MMProLong), including **128K training recipes** for Qwen2.5-VL-7B and Qwen3-VL-8B, long-document VQA synthesis scripts, data-mixture ablations, and checkpoint export utilities.
 - The **data generation pipeline is open source**. The original training corpus is not publicly released. Model checkpoints are not included in this release.
 
 ## Quick Links
 
 - [Setup](#setup)
+- [Public dataset and statistics](docs/public_dataset.md)
 - [Data](#data)
 - [Data synthesis](#data-synthesis)
 - [Running training](#running-training)
@@ -70,6 +77,16 @@ Use this checkout's `veomni` package to include the MMProLong changes. For gener
 
 ## Data
 
+### Public dataset
+
+Download [MMProLong-public-5B from Hugging Face](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B). The [dataset card](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B/blob/main/README.md) explains the five QA types, all 11 primary domains, automatic document-language annotations, model provenance, file schemas, and restoration steps. The [statistics guide](docs/public_dataset.md) reports document/page counts, per-task sample/token statistics, length distributions, evidence annotations, and the historical sampling phases.
+
+**This public dataset was built independently of the original paper corpus. ByteDance's internal data governance requirements prevent release of the original training data.** The public corpus has a different source population, generator, task mix, and length distribution; it should not be presented as the data behind the paper's reported scores. Please [cite MMProLong](#citation) when using it.
+
+The public pipeline currently uses **GPT-5.6-sol**, with at most two QA per document. Historical **GPT-5.5** examples remain in the snapshot and are labeled by `model` and `generation_phase`; the dataset card provides a GPT-5.6-only filter. Public training Parquet uses **shared-image paths**, so resolve images on demand if a trainer expects embedded bytes.
+
+### Original paper recipe
+
 Our final recipe uses **long-document VQA only**, with a pool-native distribution across 32K–128K multimodal tokens. It combines three supervision types:
 
 - **Single-page extraction (40%)**: retrieve information from one page.
@@ -80,7 +97,7 @@ This gives an **8:2 extraction-to-reasoning ratio**, with no short data. The cor
 
 ### Data synthesis
 
-The training corpus used in the paper is not publicly released. **We release the MMProLong data generation pipeline** in [data_synthesis_doc_vqa/](data_synthesis_doc_vqa/):
+The original training corpus cannot be open-sourced due to ByteDance's internal data governance requirements. The separately constructed public release is linked above. **We release the MMProLong data generation pipeline** in [data_synthesis_doc_vqa/](data_synthesis_doc_vqa/):
 
 1. **Render PDF pages** into images: [1_convert_pdf_page_to_image.py](data_synthesis_doc_vqa/1_convert_pdf_page_to_image.py).
 2. **Prepare few-shot exemplars** for the three QA tasks: [2_filter_long_vqa_exemplar.py](data_synthesis_doc_vqa/2_filter_long_vqa_exemplar.py).
@@ -267,7 +284,7 @@ For questions about MMProLong, please open a [GitHub issue](https://github.com/z
 
 ## Citation
 
-If you find MMProLong useful, please cite our paper:
+If you use MMProLong, the separately constructed public dataset, or its synthesis methodology, please cite our paper and identify the public dataset revision in your experiment description:
 
 ```bibtex
 @inproceedings{wang2026mmprolong,

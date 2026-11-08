@@ -45,7 +45,7 @@ Qwen3-VL retains its native 256K model configuration unchanged. Its existing MMP
 ## What is still needed for exact reproduction
 
 - Experiment logs that associate each reported result with its actual training arguments, to resolve the remaining paper/code differences above. The original 3B and 7B model JSONs are now available.
-- The original training corpus is not publicly released. The data generation pipeline can be used on another document collection, but the resulting corpus and metrics will differ. Final dataset statistics are needed to assess corpus differences; three source weights do not enforce a specific sequence-length distribution.
+- The original training corpus cannot be open-sourced due to ByteDance's internal data governance and management requirements. A [separately constructed public corpus](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B) is available with [measured statistics and provenance](public_dataset.md). It uses a GPT-based public-document pipeline and is not the data behind the paper's reported results; three source weights do not enforce a matching sequence-length distribution.
 - Model weights, benchmark artifacts for the 256K/512K extensions, and pinned evaluation settings.
 - Validation on the intended GPU cluster. Portable checks verify configuration structure and launcher behavior; they do not execute distributed training, checkpoint export on real weights, or the paid synthesis pipeline.
 
