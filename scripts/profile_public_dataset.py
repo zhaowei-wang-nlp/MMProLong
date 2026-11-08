@@ -407,8 +407,12 @@ def main():
     extra_table = pa.Table.from_pylist([by_id[ident] for ident in original.column("id").to_pylist()])
     enriched = original
     for name in extra_table.column_names:
-        enriched = enriched.append_column(name, extra_table.column(name))
-    assert enriched.select(original.column_names).equals(original)
+        if name in enriched.column_names:
+            enriched = enriched.set_column(enriched.schema.get_field_index(name), name, extra_table.column(name))
+        else:
+            enriched = enriched.append_column(name, extra_table.column(name))
+    core_columns = [name for name in original.column_names if name not in extra_table.column_names]
+    assert enriched.select(core_columns).equals(original.select(core_columns))
     (output / "data").mkdir(exist_ok=True)
     pq.write_table(enriched, output / "data/train-00000-of-00001.parquet", compression="zstd")
     figures(rows, documents, profile, output / "assets")
