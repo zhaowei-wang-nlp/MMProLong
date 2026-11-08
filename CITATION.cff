@@ -4,7 +4,7 @@ title: MMProLong
 type: software
 url: "https://github.com/zhaowei-wang-nlp/MMProLong"
 repository-code: "https://github.com/zhaowei-wang-nlp/MMProLong"
-repository-artifact: "https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B"
+repository-artifact: "https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public"
 authors:
   - family-names: Wang
     given-names: Zhaowei

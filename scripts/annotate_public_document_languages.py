@@ -89,7 +89,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--snapshot-root", type=Path, required=True)
     parser.add_argument("--revision", required=True, help="Pinned Hugging Face commit")
-    parser.add_argument("--repo-id", default="ZhaoweiWang/MMProLong-public-5B")
+    parser.add_argument("--repo-id", default="ZhaoweiWang/MMProLong-Data-Public")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--workers", type=int, default=4)
     args = parser.parse_args()

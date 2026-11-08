@@ -16,7 +16,7 @@
     <a href="https://huggingface.co/papers/2605.13831">
         <img alt="Hugging Face Papers" src="https://img.shields.io/badge/🤗-Hugging%20Face%20Papers-yellow">
     </a>
-    <a href="https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B">
+    <a href="https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public">
         <img alt="Separately constructed public dataset" src="https://img.shields.io/badge/Dataset-Public%20Corpus-yellow">
     </a>
     <a href="https://github.com/ByteDance-Seed/VeOmni">
@@ -35,11 +35,15 @@ MMProLong studies how to train long-context vision-language models effectively t
 
 Please check out the [paper](https://arxiv.org/abs/2605.13831) for the study and results. This repository explains how to prepare data, run training, and export checkpoints.
 
-**Public-data release:** [MMProLong-public-5B](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B) is a **separately constructed corpus, not the original training data used in the paper**. Due to **ByteDance's internal data governance and management requirements**, we cannot open-source the original paper corpus. The current public pipeline uses **GPT-5.6-sol**, while the released snapshot retains labeled historical GPT-5.5 examples. See the [public dataset guide and statistics](docs/public_dataset.md).
+**Public-data release:** [MMProLong-Data-Public](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public) is a **separately constructed corpus, not the original training data used in the paper**. Due to **ByteDance's internal data governance and management requirements**, we cannot open-source the original paper corpus. The current public pipeline uses **GPT-5.6-sol**, while the released snapshot retains labeled historical GPT-5.5 examples. See the [public dataset guide and statistics](docs/public_dataset.md).
 
 ## 📢 Latest Updates
 
-- **[Nov 8, 2026]** We release the [separately constructed public corpus](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B): **31,692 QA, 4,072 PDFs, 98,412 page images, and 1.941B estimated training tokens** (38.82% of a 5B target), with [document labels, statistics, and generation provenance](docs/public_dataset.md). This snapshot contains **3,168 GPT-5.6-sol QA and 28,524 GPT-5.5 QA**.
+<!-- PUBLIC_CORPUS_SUMMARY_START -->
+**Public snapshot (2026-11-08): 31,692 QA examples, 4,072 source PDFs, 98,412 unique page images, and 1,940,838,080 estimated training tokens (approximately 1.941B).**
+
+[Dataset](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public) | [Statistics](docs/public_dataset.md)
+<!-- PUBLIC_CORPUS_SUMMARY_END -->
 - **[Oct 18, 2026]** 🚀 We release the [MMProLong code](https://github.com/zhaowei-wang-nlp/MMProLong), including **128K training recipes** for Qwen2.5-VL-7B and Qwen3-VL-8B, long-document VQA synthesis scripts, data-mixture ablations, and checkpoint export utilities.
 - The **data generation pipeline is open source**. The original training corpus is not publicly released. Model checkpoints are not included in this release.
 
@@ -79,7 +83,7 @@ Use this checkout's `veomni` package to include the MMProLong changes. For gener
 
 ### Public dataset
 
-Download [MMProLong-public-5B from Hugging Face](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B). The [dataset card](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-public-5B/blob/main/README.md) explains the five QA types, all 11 primary domains, automatic document-language annotations, model provenance, file schemas, and restoration steps. The [statistics guide](docs/public_dataset.md) reports document/page counts, per-task sample/token statistics, length distributions, evidence annotations, and the historical sampling phases.
+Download [MMProLong-Data-Public from Hugging Face](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public). The [dataset card](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public/blob/main/README.md) explains the five QA types, all 11 primary domains, automatic document-language annotations, model provenance, file schemas, and restoration steps. The [statistics guide](docs/public_dataset.md) reports document/page counts, per-task sample/token statistics, length distributions, evidence annotations, and the historical sampling phases.
 
 **This public dataset was built independently of the original paper corpus. ByteDance's internal data governance requirements prevent release of the original training data.** The public corpus has a different source population, generator, task mix, and length distribution; it should not be presented as the data behind the paper's reported scores. Please [cite MMProLong](#citation) when using it.
 

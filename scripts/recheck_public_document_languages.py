@@ -81,7 +81,7 @@ def main():
     parser.add_argument("--input-labels", type=Path, required=True)
     parser.add_argument("--output-labels", type=Path, required=True)
     parser.add_argument("--revision", required=True)
-    parser.add_argument("--repo-id", default="ZhaoweiWang/MMProLong-public-5B")
+    parser.add_argument("--repo-id", default="ZhaoweiWang/MMProLong-Data-Public")
     parser.add_argument("--workers", type=int, default=4)
     args = parser.parse_args()
     labels = {r["document_id"]: r for line in args.input_labels.read_text().splitlines() if (r := json.loads(line))}

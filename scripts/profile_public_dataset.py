@@ -189,8 +189,6 @@ def build_profile(rows, documents, languages, snapshot_date="2026-11-08"):
             "unique_page_images": sum(d["page_count"] for d in documents.values()),
             "qa_page_references": sum(documents[r["document_id"]]["page_count"] for r in rows),
             "estimated_training_tokens": total_tokens,
-            "target_tokens": 5000000000,
-            "target_percent": 100 * total_tokens / 5000000000,
             "estimated_image_tokens_across_qa": image_tokens,
             "estimated_text_and_prompt_tokens_across_qa": total_tokens - image_tokens,
             "unique_document_image_tokens": sum(sum(d["image_tokens"]) for d in documents.values()),
