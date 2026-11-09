@@ -78,6 +78,14 @@ def task_stats(rows, documents):
 
 
 def build_profile(rows, documents, languages, snapshot_date="2026-11-08"):
+    def generation_method(row):
+        if row.get("generation_method"):
+            return row["generation_method"]
+        pages = row.get("teacher_pages")
+        if pages == list(range(documents[row["document_id"]]["page_count"])):
+            return "legacy_full_document"
+        return "legacy_recorded_subset" if pages else "legacy_unrecorded_context"
+
     counts = Counter(r["document_id"] for r in rows)
     if set(counts) != set(documents):
         raise ValueError("Metadata must describe exactly the admitted document set")
@@ -126,6 +134,7 @@ def build_profile(rows, documents, languages, snapshot_date="2026-11-08"):
                 "training_tokens": sum(r["token_count"] for r in group),
                 "question_types": sorted({r["slot"]["kind"] for r in group}),
                 "generation_models": sorted({r["model"] for r in group}),
+                "generation_methods": sorted({generation_method(r) for r in group}),
                 "source_license": doc["license"],
             }
         )
@@ -151,6 +160,11 @@ def build_profile(rows, documents, languages, snapshot_date="2026-11-08"):
                 else "und",
                 "domain_tag_method": doc["domain_tag_method"],
                 "generation_phase": phase,
+                "generation_method": generation_method(row),
+                "generation_image_pages": row.get("teacher_pages", []),
+                "generation_text_pages": row.get("generation_text_pages", []),
+                "generation_tool_calls": row.get("generation_tool_calls"),
+                "generation_model_turns": row.get("generation_model_turns"),
                 **evidence_metrics(row, doc["page_count"]),
             }
         )
@@ -216,6 +230,7 @@ def build_profile(rows, documents, languages, snapshot_date="2026-11-08"):
         ],
         "domains": domains,
         "domain_tag_methods": dict(Counter(d["domain_tag_method"] for d in documents.values())),
+        "generation_methods": dict(Counter(generation_method(r) for r in rows)),
         "document_types": dict(Counter(d["document_type"] for d in label_rows)),
         "source_licenses": dict(Counter(d["license"] for d in documents.values())),
         "source_documents": dict(Counter(d["source"] for d in documents.values())),
