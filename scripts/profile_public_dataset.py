@@ -106,7 +106,11 @@ def build_profile(rows, documents, languages, snapshot_date="2026-11-08"):
                 "source_url": doc["source_url"],
                 "source_sha256": doc["sha256"],
                 "source": doc["source"],
-                "document_type": "arxiv_research_paper" if doc["source"] == "arxiv" else "journal_research_paper" if doc["source"] in {"plos", "elife"} else "unspecified",
+                "document_type": "arxiv_research_paper"
+                if doc["source"] == "arxiv"
+                else "journal_research_paper"
+                if doc["source"] in {"plos", "elife"}
+                else "unspecified",
                 "source_domain": doc["source_domain"],
                 "domain_tag_method": doc["domain_tag_method"],
                 "document_language": lang.get("document_language", "und"),
@@ -137,7 +141,11 @@ def build_profile(rows, documents, languages, snapshot_date="2026-11-08"):
                 "id": row["id"],
                 "document_page_count": doc["page_count"],
                 "content_page_count": doc["content_page_count"],
-                "document_type": "arxiv_research_paper" if doc["source"] == "arxiv" else "journal_research_paper" if doc["source"] in {"plos", "elife"} else "unspecified",
+                "document_type": "arxiv_research_paper"
+                if doc["source"] == "arxiv"
+                else "journal_research_paper"
+                if doc["source"] in {"plos", "elife"}
+                else "unspecified",
                 "document_language": languages[row["document_id"]]["document_language"]
                 if languages is not None
                 else "und",
