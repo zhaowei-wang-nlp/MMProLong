@@ -13,26 +13,26 @@ This page describes the admitted public snapshot identified below. It is a separ
 The manuscript defines binary prefixes (K=1024, B=2^30). Public tables use decimal K=1,000 and B=1,000,000,000; the >=100Ki statistic uses 102,400 to match the paper threshold. Exact raw counts and per-document labels are published with the dataset.
 
 <!-- PUBLIC_CORPUS_STATS_START -->
-**Public snapshot (2026-11-10): 39,739 QA examples, 8,538 source PDFs, 191,774 unique page images, and 2,368,519,161 estimated training tokens (approximately 2.369B).**
+**Public snapshot (2026-11-10): 42,007 QA examples, 9,805 source PDFs, 217,733 unique page images, and 2,486,577,693 estimated training tokens (approximately 2.487B).**
 
-[This published snapshot](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public/tree/18ed85259ec8c1d27de0298e0e1f19c595549c0e); [latest data](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public).
+[This published snapshot](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public/tree/af99961951f400a761ce8368ace57957e9c9648a); [latest data](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public).
 
 ### Corpus scale
 
 | Statistic | Public snapshot value |
 | --- | --- |
-| Admitted unique PDFs | 8,538 |
+| Admitted unique PDFs | 9,805 |
 | Document family | Public research papers |
-| Unique rendered page images | 191,774 |
-| Document pages: mean / median | 22.46 / 20 |
+| Unique rendered page images | 217,733 |
+| Document pages: mean / median | 22.21 / 20 |
 | Document pages: range / 5th-95th percentile | 14-50 / 14-38 |
-| Admitted QA examples | 39,739 |
-| Estimated training tokens | 2,368,519,161 (2.369B) |
-| Per-QA tokens: mean / median | 59.602K / 53.273K |
+| Admitted QA examples | 42,007 |
+| Estimated training tokens | 2,486,577,693 (2.487B) |
+| Per-QA tokens: mean / median | 59.194K / 53.261K |
 | Observed token range | 33,547-125,503 |
-| At least 100,000 tokens | 2,633 (6.63%) |
-| At least 100Ki = 102,400 tokens (paper threshold) | 2,212 (5.57%) |
-| Page references across all QA contexts | 932,381 |
+| At least 100,000 tokens | 2,650 (6.31%) |
+| At least 100Ki = 102,400 tokens (paper threshold) | 2,226 (5.30%) |
+| Page references across all QA contexts | 978,917 |
 
 ### Document sources
 
@@ -40,7 +40,7 @@ The manuscript defines binary prefixes (K=1024, B=2^30). Public tables use decim
 | --- | --- |
 | arxiv | 4,386 |
 | elife | 20 |
-| plos | 4,132 |
+| plos | 5,399 |
 
 Tokens are the stored Qwen2.5-VL serialized-sample estimate, including full page-image context and QA/prompt text. A PDF used by several questions contributes its context repeatedly to the training-token total. This is not a count of unique-text tokens or billed API tokens. Page images are physically stored once per document.
 
@@ -50,12 +50,12 @@ Tokens are the stored Qwen2.5-VL serialized-sample estimate, including full page
 
 | Task | QA | Avg. pages | Avg. K tokens | B tokens | Pages | K-token range | >=100Ki |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `single` | 14,409 | 23.32 | 59.21 | 0.853 | 14-50 | 33.80-125.13 | 5.50% |
-| `multi_local` | 7,083 | 23.60 | 60.03 | 0.425 | 14-50 | 33.85-125.50 | 5.53% |
-| `multi_distributed` | 7,174 | 23.40 | 59.47 | 0.427 | 14-50 | 33.84-125.29 | 5.58% |
-| `reasoning` | 7,181 | 23.39 | 59.39 | 0.427 | 14-50 | 33.55-125.11 | 5.32% |
-| `unanswerable` | 3,892 | 23.98 | 60.88 | 0.237 | 14-50 | 33.79-125.09 | 6.32% |
-| **Total** | 39,739 | 23.46 | 59.60 | 2.369 | 14-50 | 33.55-125.50 | 5.57% |
+| `single` | 15,242 | 23.15 | 58.78 | 0.896 | 14-50 | 33.80-125.13 | 5.23% |
+| `multi_local` | 7,464 | 23.50 | 59.77 | 0.446 | 14-50 | 33.85-125.50 | 5.27% |
+| `multi_distributed` | 7,590 | 23.21 | 59.00 | 0.448 | 14-50 | 33.84-125.29 | 5.30% |
+| `reasoning` | 7,597 | 23.22 | 58.95 | 0.448 | 14-50 | 33.55-125.11 | 5.05% |
+| `unanswerable` | 4,114 | 23.83 | 60.50 | 0.249 | 14-50 | 33.79-125.09 | 6.08% |
+| **Total** | 42,007 | 23.30 | 59.19 | 2.487 | 14-50 | 33.55-125.50 | 5.30% |
 
 `K = 1,000`, `B = 1,000,000,000`; `100Ki = 102,400` tokens. Average pages in this table are **QA-weighted**, whereas the corpus-scale document average counts each PDF once. The two multi-page rows may be combined for comparison with the paper's broader extraction category. Unanswerable QA is an additional public-data task. Exact values, quantiles, and the combined task grouping are in [`metadata/statistics.json`](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public/blob/main/metadata/statistics.json).
 
@@ -65,17 +65,17 @@ Tokens are the stored Qwen2.5-VL serialized-sample estimate, including full page
 
 | Primary domain | Documents | Document share | QA | QA share |
 | --- | --- | --- | --- | --- |
-| Physics | 1,325 | 15.52% | 9,290 | 23.38% |
-| Computer Science | 1,269 | 14.86% | 9,189 | 23.12% |
-| Mathematics | 1,239 | 14.51% | 8,830 | 22.22% |
-| Biology | 983 | 11.51% | 1,917 | 4.82% |
-| Medicine | 922 | 10.80% | 2,038 | 5.13% |
-| Social Science | 807 | 9.45% | 1,951 | 4.91% |
-| Economics | 787 | 9.22% | 1,927 | 4.85% |
-| Engineering | 771 | 9.03% | 3,413 | 8.59% |
-| Earth Science | 410 | 4.80% | 1,075 | 2.71% |
-| Language and Literature | 16 | 0.19% | 51 | 0.13% |
-| Other | 9 | 0.11% | 58 | 0.15% |
+| Biology | 1,369 | 13.96% | 2,590 | 6.17% |
+| Physics | 1,331 | 13.57% | 9,302 | 22.14% |
+| Computer Science | 1,309 | 13.35% | 9,258 | 22.04% |
+| Mathematics | 1,247 | 12.72% | 8,846 | 21.06% |
+| Medicine | 1,203 | 12.27% | 2,553 | 6.08% |
+| Social Science | 975 | 9.94% | 2,249 | 5.35% |
+| Economics | 959 | 9.78% | 2,238 | 5.33% |
+| Engineering | 948 | 9.67% | 3,735 | 8.89% |
+| Earth Science | 435 | 4.44% | 1,120 | 2.67% |
+| Language and Literature | 20 | 0.20% | 58 | 0.14% |
+| Other | 9 | 0.09% | 58 | 0.14% |
 
 Document and QA shares differ because historical phases generated different numbers of questions per PDF. Domain labels describe the source PDF, not a separate topic inferred for each question.
 
@@ -83,21 +83,21 @@ Document and QA shares differ because historical phases generated different numb
 
 | Answer format | QA | Share |
 | --- | --- | --- |
-| Integer | 5,962 | 15.00% |
-| Float | 2,710 | 6.82% |
-| List | 13,722 | 34.53% |
-| String | 13,453 | 33.85% |
-| Unanswerable | 3,892 | 9.79% |
+| Integer | 6,323 | 15.05% |
+| Float | 3,053 | 7.27% |
+| List | 14,611 | 34.78% |
+| String | 13,906 | 33.10% |
+| Unanswerable | 4,114 | 9.79% |
 
-There are **35,847 answerable** and **3,892 unanswerable** QA examples. The observed necessary-evidence page counts are: 0 pages: 3,892, 1 pages: 18,080, 2 pages: 12,043, 3 pages: 4,492, 4 pages: 1,220, 5 pages: 7, 6 pages: 3, 7 pages: 1, 8 pages: 1.
+There are **37,893 answerable** and **4,114 unanswerable** QA examples. The observed necessary-evidence page counts are: 0 pages: 4,114, 1 pages: 19,115, 2 pages: 12,785, 3 pages: 4,676, 4 pages: 1,298, 5 pages: 10, 6 pages: 6, 7 pages: 1, 8 pages: 1, 9 pages: 1.
 
 <details>
 <summary>Observed QA count per source document</summary>
 
 | QA per document | Documents |
 | --- | --- |
-| 1 | 1,047 |
-| 2 | 5,084 |
+| 1 | 1,313 |
+| 2 | 6,085 |
 | 6 | 1 |
 | 8 | 1 |
 | 9 | 7 |
@@ -115,8 +115,8 @@ The 20-QA documents belong to the initial pilot; the two-QA limit applies to the
 | Recorded method | QA |
 | --- | --- |
 | legacy_full_document | 32,432 |
-| released_prompt_window_v1 | 4,569 |
-| document_tool_agent_v1 | 2,738 |
+| released_prompt_window_v1 | 5,992 |
+| document_tool_agent_v1 | 3,583 |
 
 ### Domain-label provenance
 
@@ -125,18 +125,18 @@ The 20-QA documents belong to the initial pilot; the two-QA limit applies to the
 | majority of full-context generator domain labels | 4,330 |
 | arXiv primary category mapping | 113 |
 | manual primary-topic classification for validated pilot batches | 9 |
-| majority of independent full-document verifier topic labels | 3,994 |
-| Crossref subject-query sampling; provisional until generator topic vote | 92 |
+| majority of independent full-document verifier topic labels | 5,234 |
+| Crossref subject-query sampling; provisional until generator topic vote | 119 |
 
 ## Document language
 
 | Estimated document language | Documents | Document share | Associated QA |
 | --- | --- | --- | --- |
-| English (`en`) | 8,533 | 99.941% | 39,699 |
-| Spanish (`es`) | 2 | 0.023% | 14 |
-| French (`fr`) | 1 | 0.012% | 2 |
-| Russian (`ru`) | 1 | 0.012% | 12 |
-| Chinese (`zh`) | 1 | 0.012% | 12 |
+| English (`en`) | 9,800 | 99.949% | 41,967 |
+| Spanish (`es`) | 2 | 0.020% | 14 |
+| French (`fr`) | 1 | 0.010% | 2 |
+| Russian (`ru`) | 1 | 0.010% | 12 |
+| Chinese (`zh`) | 1 | 0.010% | 12 |
 
 Language labels are automatic estimates from sampled embedded PDF text; non-English/uncertain predictions receive a prose-filter recheck. They are not human-verified. Method, sampled pages, scores and recheck provenance are retained with each document.
 
@@ -144,14 +144,14 @@ Language labels are automatic estimates from sampled embedded PDF text; non-Engl
 
 | Recorded generation model | Documents | QA | QA share | B training tokens |
 | --- | --- | --- | --- | --- |
-| `gpt-5.5-2026-04-24` | 2,407 | 28,524 | 71.78% | 1.745 |
-| `gpt-5.6-sol` | 6,131 | 11,215 | 28.22% | 0.624 |
+| `gpt-5.5-2026-04-24` | 2,407 | 28,524 | 67.90% | 1.745 |
+| `gpt-5.6-sol` | 7,398 | 13,483 | 32.10% | 0.742 |
 
 | Phase | Documents | QA | Maximum QA per document |
 | --- | --- | --- | --- |
 | Initial pilot (GPT-5.5) | 4 | 80 | 20 |
 | GPT-5.5 production | 2,403 | 28,444 | 12 |
-| Current GPT-5.6 production | 6,131 | 11,215 | 2 |
+| Current GPT-5.6 production | 7,398 | 13,483 | 2 |
 
 The current snapshot is a **mixed-model historical release**, not an all-GPT-5.6 corpus. Use the `model` field when a model-specific subset is required.
 
