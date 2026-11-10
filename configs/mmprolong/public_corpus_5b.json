@@ -40,7 +40,7 @@
   "note": "Authorized cumulative 5B corpus. Local tasks reuse the released 8–15-page sampler and original two-shot prompts. Global tasks use the GPT-5.6 document tool loop. Preserve full training context, two independent full-PDF checks, and at most two admitted QA per document.",
   "document_novelty_check": true,
   "journal_prefetch": true,
-  "intake_workers": 4,
+  "intake_workers": 12,
   "prefetch_documents": 256,
   "prefetch_max_gib": 12,
   "pipelined_document_jobs": true,
