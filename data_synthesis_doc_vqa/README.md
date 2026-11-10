@@ -294,3 +294,16 @@ python data_synthesis_doc_vqa/4_postprocess_VeOmni_format.py ...
 - The QA generation step can be expensive because it sends page images to a multimodal model API.
 - The postprocessing step uses the Qwen2.5-VL processor to estimate multimodal token counts.
 - For best results, make sure OCR section labels are reliable, since section sampling depends on `title` and `sec` labels.
+
+
+## Separate public-corpus production runtime
+
+The separately constructed [MMProLong-Data-Public corpus](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public) uses `local_corpus.py`, with the policy in `configs/mmprolong/public_corpus_5b.json`. This public reconstruction is not the paper's original corpus; the original data cannot be released under ByteDance's internal data governance requirements. Cite the [MMProLong paper](https://arxiv.org/abs/2605.13831). Historical model labels are retained; new production requests GPT-5.6.
+
+`continuous_corpus.py` keeps 64 document workers supplied across storage-batch boundaries and admits completed documents through the transactional token ledger. API generation, both independent reviews, tool calls, novelty checks and retries share the 64-request concurrency limit and rolling 1,000-QPM gate. Failed or unfinished candidates are retained; neither provisional candidates nor API token usage count toward the training-token total. The policy's 5B value is a cumulative stopping condition, not a claim that 5B has already been published.
+
+Local tasks continue to use the released sampler and few-shot prompts. Distributed tasks, global reasoning and unanswerable tasks use document tools. Every admitted example retains the full ordered PDF training context and two independent full-PDF reviews.
+
+Page transport optionally uses smaller lossless WebP encodings. Each conversion is decoded and checked for exact RGBA pixel equality and unchanged dimensions; images with color profiles, EXIF or animation retain their original encoding. Original dataset PNGs, page order and token accounting are unchanged. `transport_metrics.py` records connection, upload and response timing without retaining headers, URLs or payloads.
+
+For concurrent publication, `production_io.snapshot_lock` separates short admission/snapshot transactions from network transfer. The production publisher freezes ledger metadata and pins the corresponding immutable assets, uploads and verifies those bytes, then removes only verified inactive local assets. Snapshot publishing does not require pausing API generation. macOS idle/system-sleep assertions cannot override every lid-close sleep condition; the host must remain awake for production to advance.
