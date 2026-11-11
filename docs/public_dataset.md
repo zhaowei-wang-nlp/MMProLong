@@ -1,168 +1,135 @@
-# MMProLong public dataset: provenance, labels, and statistics
+# MMProLong public dataset
 
-[Hugging Face dataset](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public) | [Full dataset card](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public/blob/main/README.md) | [MMProLong paper](https://arxiv.org/abs/2605.13831) | [Project README](../README.md)
+[Load the dataset on Hugging Face](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public)
 
-**This is a separately constructed public corpus, not the original training data used in the MMProLong paper. Due to ByteDance's internal data governance and management requirements, the original paper corpus cannot be open-sourced.** The public corpus is constructed from public research papers and does not establish reproduction of the paper's reported results.
+[Paper](https://arxiv.org/abs/2605.13831) · [GitHub](https://github.com/zhaowei-wang-nlp/MMProLong)
 
-The current production pipeline uses **GPT-5.6-sol**. The snapshot also contains historical **GPT-5.5** examples; the exact breakdown and per-document sampling history are reported below. Cite the [MMProLong paper](../README.md#citation) when using this public release.
+**This is a separately constructed public corpus, not the original data used in the MMProLong paper. The original corpus cannot be released under ByteDance's internal data governance and management requirements.** This public release does not establish reproduction of the paper's reported results.
 
-## Scope and conventions
+**New production uses GPT-5.6 (`gpt-5.6-sol`).** Historical GPT-5.5 examples retain their original model labels. Please cite the MMProLong paper when using this dataset or its synthesis methodology.
 
-This page describes the admitted public snapshot identified below. It is a separately constructed public research-paper corpus, with a GPT-based hybrid generation pipeline, full-document review, and five QA types. The original paper used Seed 2.0 and coherent 8-15-page segments for its VQA synthesis. Its source pool and experimental results are separate from this release.
+## Dataset format
 
-The manuscript defines binary prefixes (K=1024, B=2^30). Public tables use decimal K=1,000 and B=1,000,000,000; the >=100Ki statistic uses 102,400 to match the paper threshold. Exact raw counts and per-document labels are published with the dataset.
+The release consists of this card and `data/train-*.parquet`. **Each row is one QA example and contains every page image of its source PDF, in order.** Images are embedded in the parquet as Hugging Face `Image` values; no separate PDF/image archive or restoration step is required.
 
-<!-- PUBLIC_CORPUS_STATS_START -->
-**Public snapshot (2026-11-10): 42,007 QA examples, 9,805 source PDFs, 217,733 unique page images, and 2,486,577,693 estimated training tokens (approximately 2.487B).**
+The page images use a smaller lossless encoding where beneficial. Every conversion is decoded and checked for identical RGBA pixels and dimensions. All questions, answers, page indices, full-document coverage and stored token counts are preserved. QA from the same document share a parquet image dictionary to reduce physical duplication.
 
-[This published snapshot](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public/tree/af99961951f400a761ce8368ace57957e9c9648a); [latest data](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public).
+## Load the data
 
-### Corpus scale
+```python
+from datasets import load_dataset
 
-| Statistic | Public snapshot value |
+dataset = load_dataset(
+    "ZhaoweiWang/MMProLong-Data-Public", split="train", streaming=True, batch_size=1
+)
+example = next(iter(dataset))
+print(example["question"], example["answer"])
+print(example["kind"], example["evidence_pages"])
+pages = example["images"]  # ordered PIL images for the complete PDF
+```
+
+For image bytes instead of decoded images, cast `images` to `datasets.Sequence(datasets.Image(decode=False))`. `conversations` contains the original serialized training dialogue, including the document's image placeholders.
+
+## Published statistics
+
+Snapshot date: **2026-11-10**. These are measured counts of the published rows.
+
+| Statistic | Value |
 | --- | --- |
-| Admitted unique PDFs | 9,805 |
-| Document family | Public research papers |
-| Unique rendered page images | 217,733 |
-| Document pages: mean / median | 22.21 / 20 |
-| Document pages: range / 5th-95th percentile | 14-50 / 14-38 |
-| Admitted QA examples | 42,007 |
+| QA examples | 42,007 |
+| Source documents | 9,805 |
+| Unique PDF pages | 217,733 |
 | Estimated training tokens | 2,486,577,693 (2.487B) |
-| Per-QA tokens: mean / median | 59.194K / 53.261K |
-| Observed token range | 33,547-125,503 |
-| At least 100,000 tokens | 2,650 (6.31%) |
-| At least 100Ki = 102,400 tokens (paper threshold) | 2,226 (5.30%) |
-| Page references across all QA contexts | 978,917 |
+| Average tokens per QA | 59,194 |
+| Median tokens per QA | 53,261 |
+| Token range per QA | 33,547–125,503 |
+| Average pages per document | 22.2 |
+| PDF page range | 14–50 |
+| Parquet shards | 197 |
 
-### Document sources
+Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including page-image context and QA/prompt text. They are not billed API tokens or unique document-text tokens. A document used by several QA examples contributes its full context to each training example.
 
-| Source | Unique documents |
+### Tasks
+
+| Task | QA | Mean pages per QA | Mean tokens per QA |
+| --- | --- | --- | --- |
+| Single-page extraction | 15,242 | 23.1 | 58,779 |
+| Local multi-page extraction | 7,464 | 23.5 | 59,766 |
+| Distributed multi-page extraction | 7,590 | 23.2 | 59,001 |
+| Reasoning | 7,597 | 23.2 | 58,952 |
+| Unanswerable | 4,114 | 23.8 | 60,501 |
+
+`single` is single-page extraction; `multi_local` requires nearby pages; `multi_distributed` requires separately necessary distant pages; `reasoning` requires a derived numerical answer; `unanswerable` requires missing information that cannot be recovered from the complete document. All evidence indices are zero-based PDF page indices. Unanswerable examples have empty `evidence_pages` and separate `related_context_pages`.
+
+### Sources and domains
+
+| Source | Documents |
 | --- | --- |
 | arxiv | 4,386 |
 | elife | 20 |
 | plos | 5,399 |
 
-Tokens are the stored Qwen2.5-VL serialized-sample estimate, including full page-image context and QA/prompt text. A PDF used by several questions contributes its context repeatedly to the training-token total. This is not a count of unique-text tokens or billed API tokens. Page images are physically stored once per document.
+| Document domain | Documents | Document share | QA |
+| --- | --- | --- | --- |
+| Biology | 1,369 | 13.96% | 2,590 |
+| Physics | 1,331 | 13.57% | 9,302 |
+| Computer Science | 1,309 | 13.35% | 9,258 |
+| Mathematics | 1,247 | 12.72% | 8,846 |
+| Medicine | 1,203 | 12.27% | 2,553 |
+| Social Science | 975 | 9.94% | 2,249 |
+| Economics | 959 | 9.78% | 2,238 |
+| Engineering | 948 | 9.67% | 3,735 |
+| Earth Science | 435 | 4.44% | 1,120 |
+| Language and Literature | 20 | 0.20% | 58 |
+| Other | 9 | 0.09% | 58 |
 
-![Public-corpus overview](assets/public_dataset/public_corpus_overview.png)
+Domain labels describe the source document and are automatic annotations, not human gold labels. `domain_tag_method` preserves their provenance. The source pool contains public research papers from multiple fields; it is not restricted to computer science. Sampling favors underrepresented domains, but the table reports the actual resulting distribution.
 
-### Task-level statistics
+### Generation models
 
-| Task | QA | Avg. pages | Avg. K tokens | B tokens | Pages | K-token range | >=100Ki |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `single` | 15,242 | 23.15 | 58.78 | 0.896 | 14-50 | 33.80-125.13 | 5.23% |
-| `multi_local` | 7,464 | 23.50 | 59.77 | 0.446 | 14-50 | 33.85-125.50 | 5.27% |
-| `multi_distributed` | 7,590 | 23.21 | 59.00 | 0.448 | 14-50 | 33.84-125.29 | 5.30% |
-| `reasoning` | 7,597 | 23.22 | 58.95 | 0.448 | 14-50 | 33.55-125.11 | 5.05% |
-| `unanswerable` | 4,114 | 23.83 | 60.50 | 0.249 | 14-50 | 33.79-125.09 | 6.08% |
-| **Total** | 42,007 | 23.30 | 59.19 | 2.487 | 14-50 | 33.55-125.50 | 5.30% |
-
-`K = 1,000`, `B = 1,000,000,000`; `100Ki = 102,400` tokens. Average pages in this table are **QA-weighted**, whereas the corpus-scale document average counts each PDF once. The two multi-page rows may be combined for comparison with the paper's broader extraction category. Unanswerable QA is an additional public-data task. Exact values, quantiles, and the combined task grouping are in [`metadata/statistics.json`](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public/blob/main/metadata/statistics.json).
-
-![Token-length distributions by task](assets/public_dataset/token_length_by_task.png)
-
-### Primary-domain distribution
-
-| Primary domain | Documents | Document share | QA | QA share |
-| --- | --- | --- | --- | --- |
-| Biology | 1,369 | 13.96% | 2,590 | 6.17% |
-| Physics | 1,331 | 13.57% | 9,302 | 22.14% |
-| Computer Science | 1,309 | 13.35% | 9,258 | 22.04% |
-| Mathematics | 1,247 | 12.72% | 8,846 | 21.06% |
-| Medicine | 1,203 | 12.27% | 2,553 | 6.08% |
-| Social Science | 975 | 9.94% | 2,249 | 5.35% |
-| Economics | 959 | 9.78% | 2,238 | 5.33% |
-| Engineering | 948 | 9.67% | 3,735 | 8.89% |
-| Earth Science | 435 | 4.44% | 1,120 | 2.67% |
-| Language and Literature | 20 | 0.20% | 58 | 0.14% |
-| Other | 9 | 0.09% | 58 | 0.14% |
-
-Document and QA shares differ because historical phases generated different numbers of questions per PDF. Domain labels describe the source PDF, not a separate topic inferred for each question.
-
-### Answer types and per-document sampling
-
-| Answer format | QA | Share |
+| Recorded generation model | QA | Estimated training tokens |
 | --- | --- | --- |
-| Integer | 6,323 | 15.05% |
-| Float | 3,053 | 7.27% |
-| List | 14,611 | 34.78% |
-| String | 13,906 | 33.10% |
-| Unanswerable | 4,114 | 9.79% |
+| gpt-5.5-2026-04-24 | 28,524 | 1,744,611,453 |
+| gpt-5.6-sol | 13,483 | 741,966,240 |
 
-There are **37,893 answerable** and **4,114 unanswerable** QA examples. The observed necessary-evidence page counts are: 0 pages: 4,114, 1 pages: 19,115, 2 pages: 12,785, 3 pages: 4,676, 4 pages: 1,298, 5 pages: 10, 6 pages: 6, 7 pages: 1, 8 pages: 1, 9 pages: 1.
+Use `model` to select a model-specific subset. The complete release is a mixed-model historical corpus.
 
-<details>
-<summary>Observed QA count per source document</summary>
+## Columns
 
-| QA per document | Documents |
+| Column | Meaning |
 | --- | --- |
-| 1 | 1,313 |
-| 2 | 6,085 |
-| 6 | 1 |
-| 8 | 1 |
-| 9 | 7 |
-| 10 | 51 |
-| 11 | 259 |
-| 12 | 2,084 |
-| 20 | 4 |
+| `id`, `document_id` | Stable QA and source-document identifiers |
+| `images` | Complete ordered page-image context, embedded bytes with logical filenames |
+| `question`, `answer`, `answer_format` | QA target and answer format; structured answers are serialized as JSON text |
+| `conversations` | Original serialized training dialogue |
+| `kind`, `source_name`, `answerable` | Task category and answerability |
+| `evidence_pages`, `related_context_pages` | Necessary evidence or related-context anchors, indexed from zero |
+| `token_count`, `page_count` | Stored training-token estimate and full PDF page count |
+| `source_domain`, `domain_tag_method`, `document_language` | Document annotations and domain-label provenance |
+| `source_title`, `source_authors`, `source_url` | Source attribution and retrieval information |
+| `license`, `license_url`, `context_sha256` | Original-document license and identity |
+| `model`, `generation_method`, `verification_policy` | Recorded synthesis and review provenance |
 
-The 20-QA documents belong to the initial pilot; the two-QA limit applies to the current GPT-5.6 phase.
+## Construction and quality checks
 
-</details>
+Local tasks use the released 8–15-page sampler, original prompts and two LongDocURL few-shot examples. Distributed extraction, globally planned reasoning and unanswerable tasks use a GPT-5.6 document tool loop with overview, full-text search, page-text/image inspection and bounded arithmetic. Unanswerable agents receive every extracted text page and inspect relevant images; a zero-hit literal search is not proof of absence.
 
-### Generation methods
+New hybrid examples require **two independent full-PDF reviews**, structural checks, executable arithmetic for numeric reasoning, necessary multi-page evidence and per-document semantic novelty checks. At most two QA are admitted per document in current production. Historical examples preserve their original model, sampling and review policy; some historical documents therefore have more QA.
 
-| Recorded method | QA |
-| --- | --- |
-| legacy_full_document | 32,432 |
-| released_prompt_window_v1 | 5,992 |
-| document_tool_agent_v1 | 3,583 |
+Automated review is a filter, not a correctness guarantee. Domain/language annotations may contain errors. Benchmark decontamination and a GPU training-read evaluation have not been completed. Evaluate overlap with your own test sets before training.
 
-### Domain-label provenance
+## Source rights
 
-| Recorded method | Documents |
-| --- | --- |
-| majority of full-context generator domain labels | 4,330 |
-| arXiv primary category mapping | 113 |
-| manual primary-topic classification for validated pilot batches | 9 |
-| majority of independent full-document verifier topic labels | 5,234 |
-| Crossref subject-query sampling; provisional until generator topic vote | 119 |
+The included source papers were admitted under CC BY 4.0 checks. Per-row title, authors, source URL and license fields preserve attribution. Cite and attribute the underlying documents as required by their licenses, as well as MMProLong. This release contains separately generated public data; it does not distribute the paper's original internal training corpus.
 
-## Document language
+## Citation
 
-| Estimated document language | Documents | Document share | Associated QA |
-| --- | --- | --- | --- |
-| English (`en`) | 9,800 | 99.949% | 41,967 |
-| Spanish (`es`) | 2 | 0.020% | 14 |
-| French (`fr`) | 1 | 0.010% | 2 |
-| Russian (`ru`) | 1 | 0.010% | 12 |
-| Chinese (`zh`) | 1 | 0.010% | 12 |
-
-Language labels are automatic estimates from sampled embedded PDF text; non-English/uncertain predictions receive a prose-filter recheck. They are not human-verified. Method, sampled pages, scores and recheck provenance are retained with each document.
-
-## Generation provenance
-
-| Recorded generation model | Documents | QA | QA share | B training tokens |
-| --- | --- | --- | --- | --- |
-| `gpt-5.5-2026-04-24` | 2,407 | 28,524 | 67.90% | 1.745 |
-| `gpt-5.6-sol` | 7,398 | 13,483 | 32.10% | 0.742 |
-
-| Phase | Documents | QA | Maximum QA per document |
-| --- | --- | --- | --- |
-| Initial pilot (GPT-5.5) | 4 | 80 | 20 |
-| GPT-5.5 production | 2,403 | 28,444 | 12 |
-| Current GPT-5.6 production | 7,398 | 13,483 | 2 |
-
-The current snapshot is a **mixed-model historical release**, not an all-GPT-5.6 corpus. Use the `model` field when a model-specific subset is required.
-
-![Evidence distribution](assets/public_dataset/evidence_distribution.png)
-
-<!-- PUBLIC_CORPUS_STATS_END -->
-
-## Download and reproduce
-
-Follow the [dataset card's download instructions](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public#download-and-use). Images are shared once per PDF and restored from checksummed archives. The reference-only training Parquet uses relative image paths; load image bytes on demand rather than duplicating all pages for every question.
-
-The [public synthesis snapshot](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public/tree/main/code) is hosted with the data. This repository provides the reproducible [statistics generator](../scripts/profile_public_dataset.py), [initial language annotator](../scripts/annotate_public_document_languages.py), and [language recheck](../scripts/recheck_public_document_languages.py). The statistics script only needs the small QA/metadata files and optional published language labels; it does not need the restored PDF/image corpus. Language recomputation streams verified source archives in memory and fetches selected PDF byte ranges for rechecks.
-
-Source documents retain their article-level licenses and exceptions. The code license does not assign a blanket license to source PDFs or synthetic QA. See the [dataset card's rights and quality notes](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public#quality-checks-and-limitations).
+```bibtex
+@inproceedings{wang2026mmprolong,
+  title={Training Long-Context Vision-Language Models Effectively with Generalization Beyond 128K Context},
+  author={Wang, Zhaowei and Luo, Lishu and Duan, Haodong and Liu, Weiwei and Wu, Sijin and Luo, Ji and Yan, Shen and Peng, Shuai and Yuan, Sihang and Huang, Chaoyi and Lin, Yi and Song, Yangqiu},
+  booktitle={Advances in Neural Information Processing Systems (NeurIPS 2026)},
+  year={2026},
+  url={https://arxiv.org/abs/2605.13831}
+}
+```
