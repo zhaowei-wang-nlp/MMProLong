@@ -346,19 +346,33 @@ class Intake:
     def save(self):
         write_json(self.path / "state.json", self.state)
 
+    def next_candidate(self, domain):
+        queue = self.state["queues"].setdefault(domain, [])
+        eligible = next((i for i, c in enumerate(queue) if c.get("retry_at", 0) <= time.time()), None)
+        if eligible is None:
+            # Deferred retries must not prevent discovery of fresh documents.
+            self.discover(domain)
+            eligible = next((i for i, c in enumerate(queue) if c.get("retry_at", 0) <= time.time()), None)
+        return queue.pop(eligible) if eligible is not None else None
+
     def discover(self, domain):
         if time.time() < self.cooldown.get(domain, 0):
             return
         index = self.state["query_indices"].get(domain, 0)
         queries = QUERIES[domain]
-        query = queries[index % len(queries)]
-        # PLOS includes medicine, biology, environment, economics and social sciences.
-        prefix = "10.7554" if domain in {"Biology", "Medicine"} and index % 4 == 3 else "10.1371"
-        key = domain + "|" + prefix + "|" + query
-        offset = self.state["offsets"].get(key, 0)
-        self.state["query_indices"][domain] = index + 1
-        if offset >= 10000:
+        # Skip exhausted queries without cooling down other queries in the domain.
+        prefix_cycle = 4 if domain in {"Biology", "Medicine"} else 1
+        for selected in range(index, index + len(queries) * prefix_cycle):
+            query = queries[selected % len(queries)]
+            prefix = "10.7554" if prefix_cycle == 4 and selected % 4 == 3 else "10.1371"
+            key = domain + "|" + prefix + "|" + query
+            offset = self.state["offsets"].get(key, 0)
+            self.state["query_indices"][domain] = selected + 1
+            if offset < 10000:
+                break
+        else:
             self.cooldown[domain] = time.time() + 3600
+            self.save()
             return
         time.sleep(max(0, 1.0 - (time.monotonic() - self.last_discovery)))
         try:
@@ -449,13 +463,9 @@ class Intake:
                 disk_ok = shutil.disk_usage(self.root).free > (policy["min_free_gib"] + 4) * 1024**3
                 if not stopping and capacity and disk_ok and len(futures) < policy.get("intake_workers", 4):
                     for domain in domain_order(counts, policy):
-                        queue = self.state["queues"].setdefault(domain, [])
-                        if not queue:
-                            self.discover(domain)
-                        eligible = next((i for i, c in enumerate(queue) if c.get("retry_at", 0) <= time.time()), None)
-                        if eligible is None:
+                        candidate = self.next_candidate(domain)
+                        if candidate is None:
                             continue
-                        candidate = queue.pop(eligible)
                         if (
                             candidate["id"] in docs
                             or (self.path / "receipts" / (candidate["id"] + ".json")).exists()

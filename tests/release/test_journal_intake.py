@@ -5,11 +5,11 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "data_synthesis_doc_vqa"))
-from journal_intake import claim_ready, crossref_candidate, domain_order, prepare_candidate, safe_link
+from journal_intake import Intake, claim_ready, crossref_candidate, domain_order, prepare_candidate, safe_link
 from public_vqa_pipeline import Runner, prepare, write_json
 
 
@@ -49,6 +49,57 @@ class IntakeTests(unittest.TestCase):
     def test_dominant_domain_is_held_even_if_it_has_many_available_candidates(self):
         order = domain_order({"Physics": 1300, "Biology": 29, "Economics": 83}, self.policy)
         self.assertEqual(order, ["Biology", "Economics"])
+
+    def test_deferred_retry_does_not_block_fresh_document_discovery(self):
+        intake = Intake(self.root, self.root / "policy.json")
+        retry = {"id": "retry", "retry_at": 2000}
+        fresh = {"id": "fresh"}
+        intake.state["queues"]["Economics"] = [retry]
+        with (
+            patch("journal_intake.time.time", return_value=1000),
+            patch.object(
+                intake, "discover", side_effect=lambda domain: intake.state["queues"][domain].append(fresh)
+            ) as discover,
+        ):
+            self.assertEqual(intake.next_candidate("Economics"), fresh)
+        discover.assert_called_once_with("Economics")
+        self.assertEqual(intake.state["queues"]["Economics"], [retry])
+
+    def test_eligible_retry_keeps_its_turn_without_extra_discovery(self):
+        intake = Intake(self.root, self.root / "policy.json")
+        retry = {"id": "retry", "retry_at": 900}
+        intake.state["queues"]["Economics"] = [retry]
+        with patch("journal_intake.time.time", return_value=1000), patch.object(intake, "discover") as discover:
+            self.assertEqual(intake.next_candidate("Economics"), retry)
+        discover.assert_not_called()
+
+    def test_exhausted_query_does_not_delay_other_queries_in_same_domain(self):
+        intake = Intake(self.root, self.root / "policy.json")
+        intake.session = Mock()
+        intake.session.get.return_value.json.return_value = {"message": {"items": []}}
+        intake.state["offsets"]["Earth Science|10.1371|spent"] = 10000
+        intake.state["offsets"]["Earth Science|10.1371|available"] = 200
+        with (
+            patch("journal_intake.QUERIES", {"Earth Science": ["spent", "available"]}),
+            patch("journal_intake.time.sleep"),
+        ):
+            intake.discover("Earth Science")
+        intake.session.get.assert_called_once()
+        params = intake.session.get.call_args.kwargs["params"]
+        self.assertEqual((params["query"], params["offset"]), ("available", 200))
+        self.assertEqual(intake.state["query_indices"]["Earth Science"], 2)
+
+    def test_exhausted_domain_still_backs_off_without_network_calls(self):
+        intake = Intake(self.root, self.root / "policy.json")
+        intake.session = Mock()
+        intake.state["offsets"]["Earth Science|10.1371|spent"] = 10000
+        with (
+            patch("journal_intake.QUERIES", {"Earth Science": ["spent"]}),
+            patch("journal_intake.time.time", return_value=1000),
+        ):
+            intake.discover("Earth Science")
+        intake.session.get.assert_not_called()
+        self.assertEqual(intake.cooldown["Earth Science"], 4600)
 
     def test_complete_pdf_is_prepared_and_partial_transfer_can_resume(self):
         import fitz
