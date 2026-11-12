@@ -36,16 +36,16 @@ Snapshot date: **2026-11-12**. These are measured counts of the published rows.
 
 | Statistic | Value |
 | --- | --- |
-| QA examples | 79,846 |
-| Source documents | 31,069 |
-| Unique PDF pages | 650,120 |
-| Estimated training tokens | 4,440,416,865 (4.440B) |
-| Average tokens per QA | 55,612 |
-| Median tokens per QA | 50,729 |
+| QA examples | 80,303 |
+| Source documents | 31,326 |
+| Unique PDF pages | 655,405 |
+| Estimated training tokens | 4,464,165,553 (4.464B) |
+| Average tokens per QA | 55,592 |
+| Median tokens per QA | 50,728 |
 | Token range per QA | 33,547–125,503 |
 | Average pages per document | 20.9 |
 | PDF page range | 14–50 |
-| Parquet shards | 645 |
+| Parquet shards | 651 |
 
 Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including page-image context and QA/prompt text. They are not billed API tokens or unique document-text tokens. A document used by several QA examples contributes its full context to each training example.
 
@@ -53,11 +53,11 @@ Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including 
 
 | Task | QA | Mean pages per QA | Mean tokens per QA |
 | --- | --- | --- | --- |
-| Single-page extraction | 29,061 | 21.7 | 55,034 |
-| Local multi-page extraction | 13,955 | 22.5 | 57,165 |
-| Distributed multi-page extraction | 14,476 | 21.7 | 55,231 |
-| Reasoning | 14,414 | 21.9 | 55,470 |
-| Unanswerable | 7,940 | 22.1 | 55,952 |
+| Single-page extraction | 29,219 | 21.7 | 55,016 |
+| Local multi-page extraction | 14,040 | 22.5 | 57,162 |
+| Distributed multi-page extraction | 14,556 | 21.7 | 55,214 |
+| Reasoning | 14,500 | 21.8 | 55,435 |
+| Unanswerable | 7,988 | 22.0 | 55,907 |
 
 `single` is single-page extraction; `multi_local` requires nearby pages; `multi_distributed` requires separately necessary distant pages; `reasoning` requires a derived numerical answer; `unanswerable` requires missing information that cannot be recovered from the complete document. All evidence indices are zero-based PDF page indices. Unanswerable examples have empty `evidence_pages` and separate `related_context_pages`.
 
@@ -67,21 +67,21 @@ Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including 
 | --- | --- |
 | arxiv | 4,386 |
 | elife | 20 |
-| plos | 26,663 |
+| plos | 26,920 |
 
 | Document domain | Documents | Document share | QA |
 | --- | --- | --- | --- |
-| Medicine | 8,101 | 26.07% | 14,705 |
-| Biology | 7,504 | 24.15% | 13,295 |
-| Social Science | 3,817 | 12.29% | 7,431 |
-| Computer Science | 2,555 | 8.22% | 11,506 |
-| Economics | 2,485 | 8.00% | 5,022 |
-| Engineering | 2,395 | 7.71% | 6,353 |
-| Mathematics | 1,540 | 4.96% | 9,397 |
-| Physics | 1,410 | 4.54% | 9,447 |
-| Earth Science | 1,138 | 3.66% | 2,401 |
-| Language and Literature | 111 | 0.36% | 225 |
-| Other | 13 | 0.04% | 64 |
+| Medicine | 8,223 | 26.25% | 14,921 |
+| Biology | 7,603 | 24.27% | 13,467 |
+| Social Science | 3,837 | 12.25% | 7,468 |
+| Computer Science | 2,557 | 8.16% | 11,510 |
+| Economics | 2,485 | 7.93% | 5,022 |
+| Engineering | 2,403 | 7.67% | 6,369 |
+| Mathematics | 1,540 | 4.92% | 9,397 |
+| Physics | 1,413 | 4.51% | 9,453 |
+| Earth Science | 1,140 | 3.64% | 2,405 |
+| Language and Literature | 111 | 0.35% | 225 |
+| Other | 14 | 0.04% | 66 |
 
 Domain labels describe the source document and are automatic annotations, not human gold labels. `domain_tag_method` preserves their provenance. The source pool contains public research papers from multiple fields; it is not restricted to computer science. Sampling favors underrepresented domains, but the table reports the actual resulting distribution.
 
@@ -90,7 +90,7 @@ Domain labels describe the source document and are automatic annotations, not hu
 | Recorded generation model | QA | Estimated training tokens |
 | --- | --- | --- |
 | gpt-5.5-2026-04-24 | 28,524 | 1,744,611,453 |
-| gpt-5.6-sol | 51,322 | 2,695,805,412 |
+| gpt-5.6-sol | 51,779 | 2,719,554,100 |
 
 Use `model` to select a model-specific subset. The complete release is a mixed-model historical corpus.
 
