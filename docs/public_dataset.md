@@ -36,16 +36,16 @@ Snapshot date: **2026-11-11**. These are measured counts of the published rows.
 
 | Statistic | Value |
 | --- | --- |
-| QA examples | 58,325 |
-| Source documents | 18,910 |
-| Unique PDF pages | 405,940 |
-| Estimated training tokens | 3,343,027,740 (3.343B) |
-| Average tokens per QA | 57,317 |
-| Median tokens per QA | 50,849 |
+| QA examples | 65,584 |
+| Source documents | 22,993 |
+| Unique PDF pages | 488,542 |
+| Estimated training tokens | 3,716,012,872 (3.716B) |
+| Average tokens per QA | 56,660 |
+| Median tokens per QA | 50,761 |
 | Token range per QA | 33,547–125,503 |
-| Average pages per document | 21.5 |
+| Average pages per document | 21.2 |
 | PDF page range | 14–50 |
-| Parquet shards | 384 |
+| Parquet shards | 467 |
 
 Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including page-image context and QA/prompt text. They are not billed API tokens or unique document-text tokens. A document used by several QA examples contributes its full context to each training example.
 
@@ -53,11 +53,11 @@ Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including 
 
 | Task | QA | Mean pages per QA | Mean tokens per QA |
 | --- | --- | --- | --- |
-| Single-page extraction | 21,201 | 22.4 | 56,795 |
-| Local multi-page extraction | 10,258 | 23.0 | 58,530 |
-| Distributed multi-page extraction | 10,551 | 22.4 | 57,047 |
-| Reasoning | 10,540 | 22.5 | 57,124 |
-| Unanswerable | 5,775 | 22.8 | 57,927 |
+| Single-page extraction | 23,851 | 22.1 | 56,114 |
+| Local multi-page extraction | 11,498 | 22.8 | 58,039 |
+| Distributed multi-page extraction | 11,882 | 22.2 | 56,323 |
+| Reasoning | 11,846 | 22.3 | 56,496 |
+| Unanswerable | 6,507 | 22.5 | 57,141 |
 
 `single` is single-page extraction; `multi_local` requires nearby pages; `multi_distributed` requires separately necessary distant pages; `reasoning` requires a derived numerical answer; `unanswerable` requires missing information that cannot be recovered from the complete document. All evidence indices are zero-based PDF page indices. Unanswerable examples have empty `evidence_pages` and separate `related_context_pages`.
 
@@ -67,21 +67,21 @@ Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including 
 | --- | --- |
 | arxiv | 4,386 |
 | elife | 20 |
-| plos | 14,504 |
+| plos | 18,587 |
 
 | Document domain | Documents | Document share | QA |
 | --- | --- | --- | --- |
-| Biology | 4,107 | 21.72% | 7,388 |
-| Medicine | 3,720 | 19.67% | 7,050 |
-| Social Science | 2,083 | 11.02% | 4,273 |
-| Computer Science | 1,827 | 9.66% | 10,195 |
-| Economics | 1,786 | 9.44% | 3,750 |
-| Engineering | 1,773 | 9.38% | 5,236 |
-| Mathematics | 1,465 | 7.75% | 9,259 |
-| Physics | 1,384 | 7.32% | 9,397 |
-| Earth Science | 701 | 3.71% | 1,598 |
-| Language and Literature | 53 | 0.28% | 118 |
-| Other | 11 | 0.06% | 61 |
+| Biology | 5,218 | 22.69% | 9,336 |
+| Medicine | 5,123 | 22.28% | 9,504 |
+| Social Science | 2,624 | 11.41% | 5,265 |
+| Economics | 2,149 | 9.35% | 4,412 |
+| Computer Science | 2,119 | 9.22% | 10,725 |
+| Engineering | 1,977 | 8.60% | 5,591 |
+| Mathematics | 1,484 | 6.45% | 9,294 |
+| Physics | 1,392 | 6.05% | 9,413 |
+| Earth Science | 824 | 3.58% | 1,830 |
+| Language and Literature | 71 | 0.31% | 152 |
+| Other | 12 | 0.05% | 62 |
 
 Domain labels describe the source document and are automatic annotations, not human gold labels. `domain_tag_method` preserves their provenance. The source pool contains public research papers from multiple fields; it is not restricted to computer science. Sampling favors underrepresented domains, but the table reports the actual resulting distribution.
 
@@ -90,7 +90,7 @@ Domain labels describe the source document and are automatic annotations, not hu
 | Recorded generation model | QA | Estimated training tokens |
 | --- | --- | --- |
 | gpt-5.5-2026-04-24 | 28,524 | 1,744,611,453 |
-| gpt-5.6-sol | 29,801 | 1,598,416,287 |
+| gpt-5.6-sol | 37,060 | 1,971,401,419 |
 
 Use `model` to select a model-specific subset. The complete release is a mixed-model historical corpus.
 
