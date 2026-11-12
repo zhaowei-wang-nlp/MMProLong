@@ -32,20 +32,20 @@ For image bytes instead of decoded images, cast `images` to `datasets.Sequence(d
 
 ## Published statistics
 
-Snapshot date: **2026-11-10**. These are measured counts of the published rows.
+Snapshot date: **2026-11-11**. These are measured counts of the published rows.
 
 | Statistic | Value |
 | --- | --- |
-| QA examples | 42,007 |
-| Source documents | 9,805 |
-| Unique PDF pages | 217,733 |
-| Estimated training tokens | 2,486,577,693 (2.487B) |
-| Average tokens per QA | 59,194 |
-| Median tokens per QA | 53,261 |
+| QA examples | 58,325 |
+| Source documents | 18,910 |
+| Unique PDF pages | 405,940 |
+| Estimated training tokens | 3,343,027,740 (3.343B) |
+| Average tokens per QA | 57,317 |
+| Median tokens per QA | 50,849 |
 | Token range per QA | 33,547–125,503 |
-| Average pages per document | 22.2 |
+| Average pages per document | 21.5 |
 | PDF page range | 14–50 |
-| Parquet shards | 197 |
+| Parquet shards | 384 |
 
 Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including page-image context and QA/prompt text. They are not billed API tokens or unique document-text tokens. A document used by several QA examples contributes its full context to each training example.
 
@@ -53,11 +53,11 @@ Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including 
 
 | Task | QA | Mean pages per QA | Mean tokens per QA |
 | --- | --- | --- | --- |
-| Single-page extraction | 15,242 | 23.1 | 58,779 |
-| Local multi-page extraction | 7,464 | 23.5 | 59,766 |
-| Distributed multi-page extraction | 7,590 | 23.2 | 59,001 |
-| Reasoning | 7,597 | 23.2 | 58,952 |
-| Unanswerable | 4,114 | 23.8 | 60,501 |
+| Single-page extraction | 21,201 | 22.4 | 56,795 |
+| Local multi-page extraction | 10,258 | 23.0 | 58,530 |
+| Distributed multi-page extraction | 10,551 | 22.4 | 57,047 |
+| Reasoning | 10,540 | 22.5 | 57,124 |
+| Unanswerable | 5,775 | 22.8 | 57,927 |
 
 `single` is single-page extraction; `multi_local` requires nearby pages; `multi_distributed` requires separately necessary distant pages; `reasoning` requires a derived numerical answer; `unanswerable` requires missing information that cannot be recovered from the complete document. All evidence indices are zero-based PDF page indices. Unanswerable examples have empty `evidence_pages` and separate `related_context_pages`.
 
@@ -67,21 +67,21 @@ Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including 
 | --- | --- |
 | arxiv | 4,386 |
 | elife | 20 |
-| plos | 5,399 |
+| plos | 14,504 |
 
 | Document domain | Documents | Document share | QA |
 | --- | --- | --- | --- |
-| Biology | 1,369 | 13.96% | 2,590 |
-| Physics | 1,331 | 13.57% | 9,302 |
-| Computer Science | 1,309 | 13.35% | 9,258 |
-| Mathematics | 1,247 | 12.72% | 8,846 |
-| Medicine | 1,203 | 12.27% | 2,553 |
-| Social Science | 975 | 9.94% | 2,249 |
-| Economics | 959 | 9.78% | 2,238 |
-| Engineering | 948 | 9.67% | 3,735 |
-| Earth Science | 435 | 4.44% | 1,120 |
-| Language and Literature | 20 | 0.20% | 58 |
-| Other | 9 | 0.09% | 58 |
+| Biology | 4,107 | 21.72% | 7,388 |
+| Medicine | 3,720 | 19.67% | 7,050 |
+| Social Science | 2,083 | 11.02% | 4,273 |
+| Computer Science | 1,827 | 9.66% | 10,195 |
+| Economics | 1,786 | 9.44% | 3,750 |
+| Engineering | 1,773 | 9.38% | 5,236 |
+| Mathematics | 1,465 | 7.75% | 9,259 |
+| Physics | 1,384 | 7.32% | 9,397 |
+| Earth Science | 701 | 3.71% | 1,598 |
+| Language and Literature | 53 | 0.28% | 118 |
+| Other | 11 | 0.06% | 61 |
 
 Domain labels describe the source document and are automatic annotations, not human gold labels. `domain_tag_method` preserves their provenance. The source pool contains public research papers from multiple fields; it is not restricted to computer science. Sampling favors underrepresented domains, but the table reports the actual resulting distribution.
 
@@ -90,7 +90,7 @@ Domain labels describe the source document and are automatic annotations, not hu
 | Recorded generation model | QA | Estimated training tokens |
 | --- | --- | --- |
 | gpt-5.5-2026-04-24 | 28,524 | 1,744,611,453 |
-| gpt-5.6-sol | 13,483 | 741,966,240 |
+| gpt-5.6-sol | 29,801 | 1,598,416,287 |
 
 Use `model` to select a model-specific subset. The complete release is a mixed-model historical corpus.
 
