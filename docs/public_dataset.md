@@ -36,16 +36,16 @@ Snapshot date: **2026-11-12**. These are measured counts of the published rows.
 
 | Statistic | Value |
 | --- | --- |
-| QA examples | 72,895 |
-| Source documents | 27,131 |
-| Unique PDF pages | 569,640 |
-| Estimated training tokens | 4,080,456,535 (4.080B) |
-| Average tokens per QA | 55,977 |
+| QA examples | 73,060 |
+| Source documents | 27,224 |
+| Unique PDF pages | 571,643 |
+| Estimated training tokens | 4,089,518,098 (4.090B) |
+| Average tokens per QA | 55,975 |
 | Median tokens per QA | 50,735 |
 | Token range per QA | 33,547–125,503 |
 | Average pages per document | 21.0 |
 | PDF page range | 14–50 |
-| Parquet shards | 543 |
+| Parquet shards | 545 |
 
 Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including page-image context and QA/prompt text. They are not billed API tokens or unique document-text tokens. A document used by several QA examples contributes its full context to each training example.
 
@@ -53,11 +53,11 @@ Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including 
 
 | Task | QA | Mean pages per QA | Mean tokens per QA |
 | --- | --- | --- | --- |
-| Single-page extraction | 26,490 | 21.9 | 55,457 |
-| Local multi-page extraction | 12,820 | 22.5 | 57,268 |
-| Distributed multi-page extraction | 13,191 | 21.9 | 55,688 |
-| Reasoning | 13,157 | 22.0 | 55,830 |
-| Unanswerable | 7,237 | 22.2 | 56,390 |
+| Single-page extraction | 26,547 | 21.9 | 55,457 |
+| Local multi-page extraction | 12,849 | 22.5 | 57,262 |
+| Distributed multi-page extraction | 13,222 | 21.9 | 55,684 |
+| Reasoning | 13,188 | 22.0 | 55,827 |
+| Unanswerable | 7,254 | 22.2 | 56,388 |
 
 `single` is single-page extraction; `multi_local` requires nearby pages; `multi_distributed` requires separately necessary distant pages; `reasoning` requires a derived numerical answer; `unanswerable` requires missing information that cannot be recovered from the complete document. All evidence indices are zero-based PDF page indices. Unanswerable examples have empty `evidence_pages` and separate `related_context_pages`.
 
@@ -67,20 +67,20 @@ Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including 
 | --- | --- |
 | arxiv | 4,386 |
 | elife | 20 |
-| plos | 22,725 |
+| plos | 22,818 |
 
 | Document domain | Documents | Document share | QA |
 | --- | --- | --- | --- |
-| Medicine | 6,961 | 25.66% | 12,690 |
-| Biology | 5,822 | 21.46% | 10,386 |
-| Social Science | 3,565 | 13.14% | 6,969 |
-| Economics | 2,429 | 8.95% | 4,919 |
-| Computer Science | 2,285 | 8.42% | 11,030 |
-| Engineering | 2,134 | 7.87% | 5,878 |
-| Mathematics | 1,516 | 5.59% | 9,352 |
-| Physics | 1,396 | 5.15% | 9,420 |
-| Earth Science | 912 | 3.36% | 1,984 |
-| Language and Literature | 99 | 0.36% | 205 |
+| Medicine | 7,003 | 25.72% | 12,764 |
+| Biology | 5,842 | 21.46% | 10,422 |
+| Social Science | 3,570 | 13.11% | 6,976 |
+| Economics | 2,435 | 8.94% | 4,931 |
+| Computer Science | 2,289 | 8.41% | 11,036 |
+| Engineering | 2,141 | 7.86% | 5,892 |
+| Mathematics | 1,521 | 5.59% | 9,362 |
+| Physics | 1,397 | 5.13% | 9,421 |
+| Earth Science | 914 | 3.36% | 1,988 |
+| Language and Literature | 100 | 0.37% | 206 |
 | Other | 12 | 0.04% | 62 |
 
 Domain labels describe the source document and are automatic annotations, not human gold labels. `domain_tag_method` preserves their provenance. The source pool contains public research papers from multiple fields; it is not restricted to computer science. Sampling favors underrepresented domains, but the table reports the actual resulting distribution.
@@ -90,7 +90,7 @@ Domain labels describe the source document and are automatic annotations, not hu
 | Recorded generation model | QA | Estimated training tokens |
 | --- | --- | --- |
 | gpt-5.5-2026-04-24 | 28,524 | 1,744,611,453 |
-| gpt-5.6-sol | 44,371 | 2,335,845,082 |
+| gpt-5.6-sol | 44,536 | 2,344,906,645 |
 
 Use `model` to select a model-specific subset. The complete release is a mixed-model historical corpus.
 
