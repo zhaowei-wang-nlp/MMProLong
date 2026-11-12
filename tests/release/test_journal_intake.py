@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+
 sys.path.insert(0, str(Path(__file__).parents[2] / "data_synthesis_doc_vqa"))
 from journal_intake import claim_ready, crossref_candidate, domain_order, prepare_candidate, safe_link
 from public_vqa_pipeline import Runner, prepare, write_json

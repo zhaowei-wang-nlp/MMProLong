@@ -1,4 +1,3 @@
-import base64
 import io
 import json
 import sys
@@ -10,14 +9,15 @@ from collections import deque
 from concurrent.futures import Future
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from PIL import Image
 
+
 sys.path.insert(0, str(Path(__file__).parents[2] / "data_synthesis_doc_vqa"))
+import transport_metrics
 from continuous_corpus import ContinuousProduction, SharedActivity
 from lossless_transport import encode_image
-import transport_metrics
 
 
 class ContinuousTests(unittest.TestCase):
@@ -51,13 +51,17 @@ class ContinuousTests(unittest.TestCase):
     def test_activity_is_shared_and_balanced_between_batch_workers(self):
         activity = SharedActivity(self.root)
         barrier = threading.Barrier(8)
+
         def call():
             activity.record(1, "job")
             barrier.wait(timeout=5)
             activity.record(-1, "job")
+
         threads = [threading.Thread(target=call) for _ in range(8)]
-        for t in threads: t.start()
-        for t in threads: t.join()
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
         state = json.loads((self.root / "api_activity.json").read_text())
         self.assertEqual((state["active_requests"], state["peak_requests"], state["completed_attempts"]), (0, 8, 8))
 
@@ -73,19 +77,26 @@ class ContinuousTests(unittest.TestCase):
         production.add_batch = Mock(return_value=False)
         next_started = threading.Event()
         finished = []
+
         def job(ident, start, rounds):
             if ident == "slow":
                 if not next_started.wait(5):
                     raise AssertionError("Slow-document batch barrier prevented replenishment")
             elif ident == "next":
                 next_started.set()
+
         production.runners = {name: SimpleNamespace(run_document=job) for name in ["a", "b"]}
-        production.corpus = SimpleNamespace(policy={"rounds_per_batch": 3}, status=Mock(),
-                                           ledger=SimpleNamespace(status=lambda: {"target_reached": len(finished) == 3}))
+        production.corpus = SimpleNamespace(
+            policy={"rounds_per_batch": 3},
+            status=Mock(),
+            ledger=SimpleNamespace(status=lambda: {"target_reached": len(finished) == 3}),
+        )
         production.stopping = lambda: len(finished) == 3
+
         def finish(name, ident, future):
             future.result()
             finished.append(ident)
+
         production.finish = finish
         production.run()
         self.assertTrue(next_started.is_set())

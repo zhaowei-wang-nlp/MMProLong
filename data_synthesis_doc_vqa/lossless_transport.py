@@ -9,6 +9,7 @@ from pathlib import Path
 
 from PIL import Image
 
+
 _locks = [threading.Lock() for _ in range(64)]
 _enabled = False
 
@@ -31,8 +32,12 @@ def encode_image(data, cache):
             if unchanged.exists():
                 return mime, data
             # Do not reinterpret animation, EXIF orientation or color profiles.
-            if (getattr(original, "n_frames", 1) != 1 or original.info.get("icc_profile") or original.getexif()
-                    or original.mode not in {"RGB", "RGBA", "L", "LA", "P", "1"}):
+            if (
+                getattr(original, "n_frames", 1) != 1
+                or original.info.get("icc_profile")
+                or original.getexif()
+                or original.mode not in {"RGB", "RGBA", "L", "LA", "P", "1"}
+            ):
                 return mime, data
             pixels = original.convert("RGBA")
             output = io.BytesIO()

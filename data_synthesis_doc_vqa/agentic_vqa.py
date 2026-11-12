@@ -4,17 +4,17 @@ The model has no arbitrary shell or filesystem tool. It can inspect only the
 current document, search its extracted text, view pages, and execute arithmetic.
 """
 
-import base64
 import json
 import threading
 import time
 from collections import deque
 from pathlib import Path
 
-from document_agent_tools import DocumentTools, TOOL_SCHEMAS
-from public_vqa_pipeline import VERIFIER, RateLimitGate, retry_after_seconds, validate, review_passes, write_json
-from transport_metrics import begin_attempt, end_attempt
+from document_agent_tools import TOOL_SCHEMAS, DocumentTools
 from lossless_transport import image_url
+from public_vqa_pipeline import VERIFIER, RateLimitGate, retry_after_seconds, review_passes, validate, write_json
+from transport_metrics import begin_attempt, end_attempt
+
 
 _RATE_GATE = RateLimitGate()
 _API_SLOTS = threading.BoundedSemaphore(16)
@@ -86,8 +86,14 @@ def complete_with_retry(call, activity=None, job_id="document_api"):
                 finally:
                     if activity:
                         activity(-1, job_id)
-            attempts.append({"ok": True, "seconds": round(time.time() - started, 3),
-                             "slot_wait_seconds": round(slot_wait, 3), "http_stages": end_attempt()})
+            attempts.append(
+                {
+                    "ok": True,
+                    "seconds": round(time.time() - started, 3),
+                    "slot_wait_seconds": round(slot_wait, 3),
+                    "http_stages": end_attempt(),
+                }
+            )
             return response, attempts
         except Exception as exc:
             code = getattr(exc, "status_code", None)

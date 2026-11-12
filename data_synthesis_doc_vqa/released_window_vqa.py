@@ -15,6 +15,7 @@ from pathlib import Path
 from api_parse_utils import parse_qa_pair_output
 from public_vqa_pipeline import write_json
 
+
 _BUILD_LOCK = threading.Lock()
 _PDF_LOCK = threading.Lock()
 _RELEASED = None

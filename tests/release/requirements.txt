@@ -1,0 +1,8 @@
+# CPU-only dependencies for make quality and make test-release.
+# These checks do not download models or call external generation APIs.
+beautifulsoup4>=4.12
+pillow>=10.0
+pymupdf>=1.24,<2
+pyyaml>=6.0
+requests>=2.31
+ruff==0.13.1

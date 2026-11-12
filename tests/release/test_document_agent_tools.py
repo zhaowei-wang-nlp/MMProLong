@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
+
 sys.path.insert(0, str(Path(__file__).parents[2] / "data_synthesis_doc_vqa"))
 from agentic_vqa import DocumentAgent
 from document_agent_tools import DocumentTools

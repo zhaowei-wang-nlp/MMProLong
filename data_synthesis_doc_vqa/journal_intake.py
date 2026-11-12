@@ -25,9 +25,9 @@ from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import requests
-
 from corpus_budget import DiskReserveReached, check_disk
 from public_vqa_pipeline import has_explicit_third_party_figure_notice, prepare, write_json
+
 
 USER_AGENT = "MMProLong-public-corpus/0.2 (https://github.com/zhaowei-wang-nlp/MMProLong)"
 QUERIES = {

@@ -186,11 +186,17 @@ class Corpus:
         import pyarrow as pa
         import pyarrow.parquet as pq
 
-        stored_bytes = self.ledger.db.execute(
-            "SELECT COALESCE(SUM(LENGTH(record_json)),0) FROM samples WHERE included=1"
-        ).fetchone()[0] if rebuild_exports else 0
+        stored_bytes = (
+            self.ledger.db.execute(
+                "SELECT COALESCE(SUM(LENGTH(record_json)),0) FROM samples WHERE included=1"
+            ).fetchone()[0]
+            if rebuild_exports
+            else 0
+        )
         incoming_bytes = sum(p.stat().st_size for p in (batch_root / "accepted").glob("*.json"))
-        check_disk(self.root, self.policy, (stored_bytes + incoming_bytes) * 3 if rebuild_exports else incoming_bytes * 3)
+        check_disk(
+            self.root, self.policy, (stored_bytes + incoming_bytes) * 3 if rebuild_exports else incoming_bytes * 3
+        )
         lookup = {d["id"]: d for d in documents}
         prefix = "*" + documents[0]["id"] + "*" if len(documents) == 1 and not rebuild_exports else "*"
         domain_votes = {}
@@ -560,7 +566,11 @@ class Corpus:
     def make_plan(self, documents, *, projected=None, projected_counts=None):
         rng = random.Random(self.state["batch_index"] + 20261023)
         totals = projected if projected is not None else {k: v["tokens"] for k, v in self.ledger.totals().items()}
-        counters = projected_counts if projected_counts is not None else {k: v["samples"] for k, v in self.ledger.totals().items()}
+        counters = (
+            projected_counts
+            if projected_counts is not None
+            else {k: v["samples"] for k, v in self.ledger.totals().items()}
+        )
         plan = []
         planned_tokens = 0
         remaining = self.ledger.status()["remaining_tokens"]

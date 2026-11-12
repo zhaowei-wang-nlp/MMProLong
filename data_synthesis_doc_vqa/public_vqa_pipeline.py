@@ -414,8 +414,8 @@ class Runner:
         self.request_timeout_seconds = int((self.disk_policy or {}).get("request_timeout_seconds", 360))
         options = {}
         if (self.disk_policy or {}).get("http_stage_metrics"):
-            from transport_metrics import attach_trace
             from openai import DefaultHttpxClient
+            from transport_metrics import attach_trace
 
             options["http_client"] = DefaultHttpxClient(event_hooks={"request": [attach_trace]})
         self.client = OpenAI(api_key=key, base_url=url, timeout=self.request_timeout_seconds, max_retries=0, **options)

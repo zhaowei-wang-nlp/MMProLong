@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+
 sys.path.insert(0, str(Path(__file__).parents[2] / "data_synthesis_doc_vqa"))
 import agentic_vqa
 from agentic_vqa import RequestRateGate

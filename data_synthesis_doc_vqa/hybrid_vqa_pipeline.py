@@ -14,8 +14,8 @@ from agentic_vqa import (
     review_qualified,
 )
 from corpus_budget import check_disk
-from public_vqa_pipeline import Runner, evidence_span, distance_bin, validate, write_json
-from released_window_vqa import prepare_context, generate_window, numeric_answer, canonical_calculation
+from public_vqa_pipeline import Runner, distance_bin, evidence_span, validate, write_json
+from released_window_vqa import canonical_calculation, generate_window, numeric_answer, prepare_context
 
 
 class HybridRunner(Runner):

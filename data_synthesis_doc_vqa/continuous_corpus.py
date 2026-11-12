@@ -9,9 +9,8 @@ import json
 import shutil
 import threading
 import time
-from collections import Counter, deque
+from collections import deque
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
-from pathlib import Path
 from types import SimpleNamespace
 
 from corpus_budget import DiskReserveReached, check_disk
@@ -35,11 +34,17 @@ class SharedActivity:
             self.active += delta
             self.peak = max(self.peak, self.active)
             self.completed += delta < 0
-            write_json(self.root / "api_activity.json", {
-                "mode": "continuous_documents", "active_requests": self.active,
-                "peak_requests": self.peak, "completed_attempts": self.completed,
-                "last_job": job, "updated_at_unix": time.time(),
-            })
+            write_json(
+                self.root / "api_activity.json",
+                {
+                    "mode": "continuous_documents",
+                    "active_requests": self.active,
+                    "peak_requests": self.peak,
+                    "completed_attempts": self.completed,
+                    "last_job": job,
+                    "updated_at_unix": time.time(),
+                },
+            )
 
 
 class ContinuousProduction:
@@ -57,15 +62,24 @@ class ContinuousProduction:
     def persist(self):
         self.corpus.state["streaming_batches"] = list(self.runners)
         write_json(self.root / "state.json", self.corpus.state)
-        active = [ident for name, runner in self.runners.items() for ident in runner.docs if ident not in self.done[name]]
+        active = [
+            ident for name, runner in self.runners.items() for ident in runner.docs if ident not in self.done[name]
+        ]
         write_json(self.root / "active_documents.json", {"document_ids": active, "updated_at_unix": time.time()})
 
     def attach(self, batch):
-        runner = HybridRunner(SimpleNamespace(
-            root=batch, env_file=self.corpus.args.env_file, model=self.corpus.policy["model"],
-            disk_policy=self.corpus.policy, qa_per_call=1, activity_path=self.root / "api_activity.json",
-            document_novelty_check=True, pipelined_document_jobs=True,
-        ))
+        runner = HybridRunner(
+            SimpleNamespace(
+                root=batch,
+                env_file=self.corpus.args.env_file,
+                model=self.corpus.policy["model"],
+                disk_policy=self.corpus.policy,
+                qa_per_call=1,
+                activity_path=self.root / "api_activity.json",
+                document_novelty_check=True,
+                pipelined_document_jobs=True,
+            )
+        )
         if self.client is None:
             self.client = runner.client
         else:
@@ -88,8 +102,12 @@ class ContinuousProduction:
         for name in names:
             batch = self.root / "batches" / name
             if not (batch / "manifest.json").exists():
-                cached = {p.stem.removesuffix(".metadata"): read(p, {}) for p in (batch / "sources").glob("*.metadata.json")}
-                cached = {ident: read(self.root / "documents" / (ident + ".json"), doc) for ident, doc in cached.items()}
+                cached = {
+                    p.stem.removesuffix(".metadata"): read(p, {}) for p in (batch / "sources").glob("*.metadata.json")
+                }
+                cached = {
+                    ident: read(self.root / "documents" / (ident + ".json"), doc) for ident, doc in cached.items()
+                }
                 docs = prepare(batch, manifest_only=True, policy=self.corpus.policy, prepared_documents=cached)
                 write_json(batch / "plan.json", self.corpus.make_plan(docs))
             self.attach(batch)
@@ -138,7 +156,9 @@ class ContinuousProduction:
         except Exception as exc:
             error = type(exc).__name__
         with snapshot_lock(self.root):
-            outcomes = self.corpus.commit(runner.root, [runner.docs[ident]], rebuild_exports=False) if error is None else {}
+            outcomes = (
+                self.corpus.commit(runner.root, [runner.docs[ident]], rebuild_exports=False) if error is None else {}
+            )
             self.done[name][ident] = {"outcomes": dict(outcomes), "error_type": error, "at_unix": time.time()}
             write_json(runner.root / "completed_documents.json", self.done[name])
             if ident not in self.corpus.state["processed"]:
@@ -149,7 +169,9 @@ class ContinuousProduction:
         runner._agents.pop(ident, None)
         runner._contexts.pop(ident, None)
         if len(self.done[name]) == len(runner.docs):
-            write_json(runner.root / "streaming_complete.json", {"at_unix": time.time(), "documents": len(runner.docs)})
+            write_json(
+                runner.root / "streaming_complete.json", {"at_unix": time.time(), "documents": len(runner.docs)}
+            )
             del self.runners[name]
             del self.done[name]
             with snapshot_lock(self.root):
@@ -157,7 +179,12 @@ class ContinuousProduction:
             shutil.rmtree(runner.root / "transport_cache", ignore_errors=True)
 
     def stopping(self):
-        return self.pause_for_disk or self.drain.exists() or self.controller_stop.exists() or self.corpus.ledger.status()["target_reached"]
+        return (
+            self.pause_for_disk
+            or self.drain.exists()
+            or self.controller_stop.exists()
+            or self.corpus.ledger.status()["target_reached"]
+        )
 
     def run(self):
         with snapshot_lock(self.root):
@@ -173,11 +200,18 @@ class ContinuousProduction:
                         self.pause_for_disk = True
                 while self.queue and len(futures) < self.workers and not self.stopping():
                     name, ident = self.queue.popleft()
-                    future = pool.submit(self.runners[name].run_document, ident, 0, self.corpus.policy["rounds_per_batch"])
+                    future = pool.submit(
+                        self.runners[name].run_document, ident, 0, self.corpus.policy["rounds_per_batch"]
+                    )
                     futures[future] = (name, ident)
                 if time.monotonic() - self.last_status > 30:
-                    self.corpus.status("continuous_generation", active_documents=len(futures), queued_documents=len(self.queue),
-                                       active_batches=list(self.runners), api_max_concurrency=self.corpus.policy["api_max_concurrency"])
+                    self.corpus.status(
+                        "continuous_generation",
+                        active_documents=len(futures),
+                        queued_documents=len(self.queue),
+                        active_batches=list(self.runners),
+                        api_max_concurrency=self.corpus.policy["api_max_concurrency"],
+                    )
                     self.last_status = time.monotonic()
                 if not futures:
                     if self.stopping():
@@ -194,12 +228,19 @@ class ContinuousProduction:
                     # Fill the vacated slot before handling the next completion.
                     if self.queue and not self.stopping():
                         next_name, next_id = self.queue.popleft()
-                        new = pool.submit(self.runners[next_name].run_document, next_id, 0, self.corpus.policy["rounds_per_batch"])
+                        new = pool.submit(
+                            self.runners[next_name].run_document, next_id, 0, self.corpus.policy["rounds_per_batch"]
+                        )
                         futures[new] = (next_name, next_id)
         if self.client:
             self.client.close()
-        self.corpus.status("paused_disk_reserve" if self.pause_for_disk else
-                           "target_reached" if self.corpus.ledger.status()["target_reached"] else "drained")
+        self.corpus.status(
+            "paused_disk_reserve"
+            if self.pause_for_disk
+            else "target_reached"
+            if self.corpus.ledger.status()["target_reached"]
+            else "drained"
+        )
 
 
 def run_continuous(corpus):
