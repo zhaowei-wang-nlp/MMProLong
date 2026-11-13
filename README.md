@@ -44,6 +44,8 @@ Please check out the [paper](https://arxiv.org/abs/2605.13831) for the study and
 
 [Dataset](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public) | [Statistics](docs/public_dataset.md)
 <!-- PUBLIC_CORPUS_SUMMARY_END -->
+
+- **[Nov 13, 2026]** 🤗 We release [MMProLong-Data-Public](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public), a newly constructed public dataset with **90,556 long-document QA examples and approximately 5B estimated training tokens**, provided as self-contained Parquet shards. This is **not the original training corpus used in the paper**; see the [dataset guide](docs/public_dataset.md) for provenance and statistics.
 - **[Oct 18, 2026]** 🚀 We release the [MMProLong code](https://github.com/zhaowei-wang-nlp/MMProLong), including **128K training recipes** for Qwen2.5-VL-7B and Qwen3-VL-8B, long-document VQA synthesis scripts, data-mixture ablations, and checkpoint export utilities.
 - The **data generation pipeline is open source**. The original training corpus is not publicly released. Model checkpoints are not included in this release.
 
