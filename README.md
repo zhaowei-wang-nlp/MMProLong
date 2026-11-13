@@ -40,7 +40,7 @@ Please check out the [paper](https://arxiv.org/abs/2605.13831) for the study and
 ## 📢 Latest Updates
 
 <!-- PUBLIC_CORPUS_SUMMARY_START -->
-**Public snapshot (2026-11-13): 89,934 QA examples, 36,734 source PDFs, 766,725 unique page images, and 4,966,764,214 estimated training tokens (approximately 4.967B).**
+**Public snapshot (2026-11-13): 90,556 QA examples, 37,088 source PDFs, 774,132 unique page images, and 4,999,938,857 estimated training tokens (approximately 5.000B).**
 
 [Dataset](https://huggingface.co/datasets/ZhaoweiWang/MMProLong-Data-Public) | [Statistics](docs/public_dataset.md)
 <!-- PUBLIC_CORPUS_SUMMARY_END -->
