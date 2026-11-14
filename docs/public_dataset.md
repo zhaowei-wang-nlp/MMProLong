@@ -10,7 +10,7 @@
 
 ## Dataset format
 
-The release consists of this card and `data/train-*.parquet`. **Each row is one QA example and contains every page image of its source PDF, in order.** Images are embedded in the parquet as Hugging Face `Image` values; no separate PDF/image archive or restoration step is required.
+The release consists of this card and `data/train-*.parquet`. Shards are approximately 5 GB each; the final shard may be smaller. **Each row is one QA example and contains every page image of its source PDF, in order.** Images are embedded in the parquet as Hugging Face `Image` values; no separate PDF/image archive or restoration step is required.
 
 The page images use a smaller lossless encoding where beneficial. Every conversion is decoded and checked for identical RGBA pixels and dimensions. All questions, answers, page indices, full-document coverage and stored token counts are preserved. QA from the same document share a parquet image dictionary to reduce physical duplication.
 
@@ -45,7 +45,7 @@ Snapshot date: **2026-11-13**. These are measured counts of the published rows.
 | Token range per QA | 33,547–125,503 |
 | Average pages per document | 20.9 |
 | PDF page range | 14–50 |
-| Parquet shards | 777 |
+| Parquet shards | 22 |
 
 Training tokens are the stored Qwen2.5-VL serialized-sample estimate, including page-image context and QA/prompt text. They are not billed API tokens or unique document-text tokens. A document used by several QA examples contributes its full context to each training example.
 
